@@ -7,35 +7,43 @@ import Link from 'next/link'
 const slides = [
   {
     id: 1,
-    title: "Exclusive Wall Posters & Decor",
-    subtitle: "Transform your space with high-gloss aesthetic prints.",
-    bg: "from-blue-600 to-indigo-800",
-    cta: "Shop Posters",
-    link: "/category/wall-posters",
+    title: "Best Prices on Electrical & Electronics",
+    subtitle: "Explore high-efficiency solar systems, smart robotics kits, and reliable electronic essentials at unbeatable rates.",
+    bg: "from-blue-700 via-indigo-800 to-amber-600",
+    badge: "⚡ Solar & Robotics Special",
+    cta: "Explore Electronics",
+    link: "/category/electronics",
+    graphic: "⚡🤖",
   },
   {
     id: 2,
-    title: "B2B Wholesale Hub",
-    subtitle: "Register your business account for bulk pricing & special discounts.",
-    bg: "from-amber-600 to-orange-700",
-    cta: "B2B Login",
-    link: "/login",
+    title: "Custom Software Development Solutions",
+    subtitle: "Empower your business with high-performance web applications, e-commerce stores, and custom software tailored for growth.",
+    bg: "from-slate-900 via-indigo-950 to-blue-900",
+    badge: "💻 Tech & App Solutions",
+    cta: "View Services",
+    link: "/category/software",
+    graphic: "💻🚀",
   },
   {
     id: 3,
-    title: "Digital Services & Jan Aadhaar",
-    subtitle: "Fast and reliable citizen documentation and kiosk solutions.",
-    bg: "from-emerald-600 to-teal-800",
-    cta: "View Services",
+    title: "Shree Shyam E-Mitra, Jawahar Bazar, Tonk",
+    subtitle: "Your Trusted Public Service Center for Jan Aadhaar, PAN Cards, GST Registration, and all Government & Accounting Work.",
+    bg: "from-amber-700 via-orange-800 to-red-800",
+    badge: "🏛️ Official Govt. & Kiosk Services",
+    cta: "Visit Portal",
     link: "/category/services",
+    graphic: "🛡️📋",
   },
   {
     id: 4,
-    title: "New Festive & Gift Collections",
-    subtitle: "Explore handpicked gift sets designed for every occasion.",
-    bg: "from-purple-600 to-pink-700",
-    cta: "Explore Gifts",
-    link: "/category/gifts",
+    title: "Special First-Purchase Discount!",
+    subtitle: "Get exclusive coupon codes for your very first order by filling out our quick customer form. Save big today!",
+    bg: "from-emerald-700 via-teal-800 to-cyan-900",
+    badge: "🎁 Welcome Offer",
+    cta: "Get Coupon Code",
+    link: "/coupon-form", // Points to the form we will build later
+    graphic: "🎟️✨",
   },
 ]
 
@@ -58,10 +66,15 @@ export default function HeroSlider() {
         {slides.map((slide) => (
           <div 
             key={slide.id} 
-            className={`w-full flex-shrink-0 bg-gradient-to-r ${slide.bg} text-white py-16 px-8 md:py-24 md:px-16 flex flex-col items-start justify-center min-h-[320px] md:min-h-[400px]`}
+            className={`w-full flex-shrink-0 bg-gradient-to-r ${slide.bg} text-white py-16 px-8 md:py-24 md:px-16 flex flex-col items-start justify-center min-h-[340px] md:min-h-[400px] relative`}
           >
+            {/* Graphic symbol overlay for visual flair */}
+            <div className="absolute right-6 bottom-6 md:right-16 md:bottom-12 opacity-20 text-7xl md:text-9xl select-none pointer-events-none">
+              {slide.graphic}
+            </div>
+
             <span className="bg-white/20 text-xs md:text-sm uppercase tracking-widest px-3 py-1 rounded-full mb-4 backdrop-blur-md">
-              Shree Shyam Digital & E-Commerce
+              {slide.badge}
             </span>
             <h1 className="text-3xl md:text-5xl font-extrabold mb-4 max-w-2xl leading-tight">
               {slide.title}
