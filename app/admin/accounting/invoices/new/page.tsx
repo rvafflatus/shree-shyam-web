@@ -1,9 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { createClient } from '@/utils/supabase/client'; // Apne project ke hisaab se path adjust kar sakte hain
+import { supabase } from '@/supabase';
 
 export default function NewInvoicePage() {
-  const supabase = createClient();
   const [parties, setParties] = useState<any[]>([]);
   const [itemsMaster, setItemsMaster] = useState<any[]>([]);
 
@@ -95,9 +94,6 @@ export default function NewInvoicePage() {
                     className="w-full border p-1 rounded text-sm bg-white"
                   >
                     <option value="">Select Item</option>
-                    {itemsMaster.path && itemsMaster.map((i) => (
-                      <option key={i.id} value={i.id}>{i.name}</option>
-                    ))}
                     {itemsMaster.map((i) => (
                       <option key={i.id} value={i.id}>{i.name}</option>
                     ))}
