@@ -1,15 +1,42 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/supabase';
 
+const addNewPartyOption = '__add_new_party__';
+const addNewItemOption = '__add_new_item__';
+
+type Party = {
+  id: string;
+  name: string;
+  gstin?: string | null;
+};
+
+type Item = {
+  id: string;
+  name: string;
+  hsn_sac: string;
+  selling_price: number;
+  gst_rate: number;
+};
+
+type LineItem = {
+  item_id: string;
+  description: string;
+  hsn_sac: string;
+  quantity: number;
+  unit_price: number;
+  tax_rate: number;
+};
+
 export default function NewInvoicePage() {
-  const [parties, setParties] = useState<any[]>([]);
-  const [itemsMaster, setItemsMaster] = useState<any[]>([]);
+  const router = useRouter();
+  const [parties, setParties] = useState<Party[]>([]);
+  const [itemsMaster, setItemsMaster] = useState<Item[]>([]);
 
   // Form State
   const [selectedParty, setSelectedParty] = useState('');
-  const [invoiceNumber, setInvoiceNumber] = useState('INV-2026-001');
-  const [lineItems, setLineItems] = useState([
+  const [lineItems, setLineItems] = useState<LineItem[]>([
     { item_id: '', description: '', hsn_sac: '', quantity: 1, unit_price: 0, tax_rate: 18 }
   ]);
 
@@ -22,7 +49,7 @@ export default function NewInvoicePage() {
       if (iData) setItemsMaster(iData);
     }
     fetchData();
-  }, [supabase]);
+  }, []);
 
   // Nayi row add karne ke liye function
   const addItemRow = () => {
@@ -60,13 +87,20 @@ export default function NewInvoicePage() {
         <label className="block text-sm font-medium text-gray-700">Select Customer / Party</label>
         <select 
           value={selectedParty} 
-          onChange={(e) => setSelectedParty(e.target.value)}
+          onChange={(e) => {
+            if (e.target.value === addNewPartyOption) {
+              router.push('/admin/accounting/parties/new');
+              return;
+            }
+            setSelectedParty(e.target.value);
+          }}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
         >
           <option value="">-- Choose Party --</option>
           {parties.map((p) => (
             <option key={p.id} value={p.id}>{p.name} {p.gstin ? `(${p.gstin})` : ''}</option>
           ))}
+          <option value={addNewPartyOption}>+ Add New Party</option>
         </select>
       </div>
 
@@ -90,13 +124,20 @@ export default function NewInvoicePage() {
                 <td className="p-2">
                   <select 
                     value={row.item_id}
-                    onChange={(e) => handleItemSelect(index, e.target.value)}
+                    onChange={(e) => {
+                      if (e.target.value === addNewItemOption) {
+                        router.push('/admin/accounting/items/new');
+                        return;
+                      }
+                      handleItemSelect(index, e.target.value);
+                    }}
                     className="w-full border p-1 rounded text-sm bg-white"
                   >
                     <option value="">Select Item</option>
                     {itemsMaster.map((i) => (
                       <option key={i.id} value={i.id}>{i.name}</option>
                     ))}
+                    <option value={addNewItemOption}>+ Add New Item</option>
                   </select>
                 </td>
                 <td className="p-2"><input type="text" value={row.hsn_sac} readOnly className="w-24 bg-gray-50 border p-1 rounded text-sm" /></td>
