@@ -50,6 +50,17 @@ const sections = [
     accent: 'border-amber-200 bg-amber-50 text-amber-700',
     button: 'bg-amber-600 hover:bg-amber-700',
   },
+  {
+    number: '05',
+    category: 'CRM',
+    title: 'CRM & Leads Follow-up',
+    description:
+      'Track new leads, follow-up notes, and customer conversion status.',
+    href: '/admin/accounting/leads',
+    action: 'Manage leads',
+    accent: 'border-cyan-200 bg-cyan-50 text-cyan-700',
+    button: 'bg-cyan-700 hover:bg-cyan-800',
+  },
 ];
 
 export default function AccountingDashboardPage() {
@@ -142,7 +153,7 @@ export default function AccountingDashboardPage() {
 
         <section
           aria-label="Accounting sections"
-          className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4"
+          className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5"
         >
           {sections.map((section) => (
             <article
