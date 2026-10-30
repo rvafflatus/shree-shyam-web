@@ -10,6 +10,7 @@ export default function NewItemPage() {
   const [supabase] = useState(createClient);
   const [name, setName] = useState('');
   const [hsnSac, setHsnSac] = useState('');
+  const [purchasePrice, setPurchasePrice] = useState('');
   const [sellingPrice, setSellingPrice] = useState('');
   const [gstRate, setGstRate] = useState('0');
   const [isSaving, setIsSaving] = useState(false);
@@ -26,6 +27,7 @@ export default function NewItemPage() {
       const { error } = await supabase.from('items').insert({
         name: name.trim(),
         hsn_sac: hsnSac.trim(),
+        purchase_price: Number(purchasePrice),
         selling_price: Number(sellingPrice),
         gst_rate: Number(gstRate),
       });
@@ -38,6 +40,7 @@ export default function NewItemPage() {
       setSuccessMessage('Item added successfully.');
       setName('');
       setHsnSac('');
+      setPurchasePrice('');
       setSellingPrice('');
       setGstRate('0');
     } catch (error) {
@@ -94,24 +97,46 @@ export default function NewItemPage() {
             />
           </div>
 
-          <div>
-            <label
-              htmlFor="selling-price"
-              className="mb-1 block text-sm font-medium text-gray-700"
-            >
-              Selling Price (₹)
-            </label>
-            <input
-              id="selling-price"
-              name="selling_price"
-              type="number"
-              min="0"
-              step="0.01"
-              required
-              value={sellingPrice}
-              onChange={(event) => setSellingPrice(event.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-            />
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div>
+              <label
+                htmlFor="purchase-price"
+                className="mb-1 block text-sm font-medium text-gray-700"
+              >
+                Purchase Price (₹)
+              </label>
+              <input
+                id="purchase-price"
+                name="purchase_price"
+                type="number"
+                min="0"
+                step="0.01"
+                required
+                value={purchasePrice}
+                onChange={(event) => setPurchasePrice(event.target.value)}
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="selling-price"
+                className="mb-1 block text-sm font-medium text-gray-700"
+              >
+                Selling Price (₹)
+              </label>
+              <input
+                id="selling-price"
+                name="selling_price"
+                type="number"
+                min="0"
+                step="0.01"
+                required
+                value={sellingPrice}
+                onChange={(event) => setSellingPrice(event.target.value)}
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              />
+            </div>
           </div>
 
           <div>

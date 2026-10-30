@@ -8,6 +8,7 @@ type Item = {
   id: string;
   name: string;
   hsn_sac: string | null;
+  purchase_price: number | null;
   selling_price: number | null;
   gst_rate: number | null;
 };
@@ -29,7 +30,7 @@ export default function ItemsPage() {
       try {
         const { data, error } = await supabase
           .from('items')
-          .select('id, name, hsn_sac, selling_price, gst_rate')
+          .select('id, name, hsn_sac, purchase_price, selling_price, gst_rate')
           .order('name');
 
         if (!isActive) return;
@@ -121,11 +122,12 @@ export default function ItemsPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[640px] border-collapse text-left text-sm">
+              <table className="w-full min-w-[720px] border-collapse text-left text-sm">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                     <th scope="col" className="px-4 py-3 font-semibold">Item</th>
                     <th scope="col" className="px-4 py-3 font-semibold">HSN / SAC</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">Purchase Price</th>
                     <th scope="col" className="px-4 py-3 font-semibold">Selling Price</th>
                     <th scope="col" className="px-4 py-3 font-semibold">GST Rate</th>
                   </tr>
@@ -135,6 +137,9 @@ export default function ItemsPage() {
                     <tr key={item.id} className="hover:bg-slate-50">
                       <td className="px-4 py-3 font-medium text-slate-900">{item.name}</td>
                       <td className="px-4 py-3 text-slate-600">{item.hsn_sac || '—'}</td>
+                      <td className="px-4 py-3 text-slate-600">
+                        {item.purchase_price == null ? '—' : `₹${item.purchase_price.toFixed(2)}`}
+                      </td>
                       <td className="px-4 py-3 text-slate-600">
                         {item.selling_price == null ? '—' : `₹${item.selling_price.toFixed(2)}`}
                       </td>

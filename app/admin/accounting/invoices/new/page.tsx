@@ -17,6 +17,7 @@ type Item = {
   id: string;
   name: string;
   hsn_sac: string;
+  purchase_price: number | null;
   selling_price: number;
   gst_rate: number;
 };
@@ -153,11 +154,25 @@ export default function NewInvoicePage() {
                   updated[index].quantity = Number(e.target.value);
                   setLineItems(updated);
                 }} className="w-16 border p-1 rounded text-sm" /></td>
-                <td className="p-2"><input type="number" value={row.unit_price} onChange={(e) => {
-                  const updated = [...lineItems];
-                  updated[index].unit_price = Number(e.target.value);
-                  setLineItems(updated);
-                }} className="w-24 border p-1 rounded text-sm" /></td>
+                <td className="p-2">
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    aria-label={`Unit price on invoice for ${row.description || 'line item'}`}
+                    placeholder="Enter price"
+                    value={row.unit_price}
+                    onChange={(event) => {
+                      const updated = [...lineItems];
+                      updated[index] = {
+                        ...updated[index],
+                        unit_price: Number(event.target.value),
+                      };
+                      setLineItems(updated);
+                    }}
+                    className="w-28 rounded border p-1 text-sm"
+                  />
+                </td>
                 <td className="p-2 text-sm">{row.tax_rate}%</td>
                 <td className="p-2 font-semibold text-sm">₹{(row.quantity * row.unit_price).toFixed(2)}</td>
               </tr>
