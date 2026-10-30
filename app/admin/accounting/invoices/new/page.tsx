@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { supabase } from '@/supabase';
 
 const addNewPartyOption = '__add_new_party__';
@@ -80,6 +81,12 @@ export default function NewInvoicePage() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto bg-white shadow rounded-lg my-6">
+      <Link
+        href="/admin/accounting"
+        className="mb-4 inline-flex text-sm font-medium text-blue-700 hover:text-blue-900"
+      >
+        &larr; Accounting Home
+      </Link>
       <h1 className="text-2xl font-bold mb-6 text-gray-800">Create New Tax Invoice</h1>
       
       {/* Party Selection Dropdown */}

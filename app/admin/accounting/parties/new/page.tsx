@@ -64,6 +64,12 @@ export default function NewPartyPage() {
   return (
     <main className="min-h-screen bg-gray-50 px-4 py-10 sm:px-6">
       <section className="mx-auto w-full max-w-2xl rounded-xl bg-white p-6 shadow-lg sm:p-8">
+        <Link
+          href="/admin/accounting"
+          className="mb-4 inline-flex text-sm font-medium text-blue-700 hover:text-blue-900"
+        >
+          &larr; Accounting Home
+        </Link>
         <h1 className="text-2xl font-bold text-gray-900">Add New Party</h1>
         <p className="mt-2 text-sm text-gray-600">
           Add a customer or party to use on an invoice.

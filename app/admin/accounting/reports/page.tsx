@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
 
 type DataRow = Record<string, unknown>;
@@ -165,6 +166,12 @@ export default function AccountingReportsPage() {
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
+        <Link
+          href="/admin/accounting"
+          className="mb-6 inline-flex text-sm font-medium text-blue-700 hover:text-blue-900"
+        >
+          &larr; Accounting Home
+        </Link>
         <header className="mb-8">
           <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">
             Accounting
