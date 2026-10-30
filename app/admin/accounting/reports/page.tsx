@@ -5,12 +5,13 @@ import Link from 'next/link';
 import { createClient } from '@/utils/supabase/client';
 
 type DataRow = Record<string, unknown>;
-type TabKey = 'invoices' | 'parties' | 'items';
+type TabKey = 'invoices' | 'parties' | 'items' | 'purchases';
 
 const tabs: { id: TabKey; label: string; filename: string }[] = [
   { id: 'invoices', label: 'Invoices', filename: 'invoices_report.csv' },
   { id: 'parties', label: 'Parties', filename: 'parties_list.csv' },
   { id: 'items', label: 'Items', filename: 'items_master.csv' },
+  { id: 'purchases', label: 'Purchases & Transport', filename: 'purchase_transport_report.csv' },
 ];
 
 function toRows(data: unknown): DataRow[] {
@@ -79,6 +80,7 @@ export default function AccountingReportsPage() {
   const [invoices, setInvoices] = useState<DataRow[]>([]);
   const [parties, setParties] = useState<DataRow[]>([]);
   const [items, setItems] = useState<DataRow[]>([]);
+  const [purchases, setPurchases] = useState<DataRow[]>([]);
   const [activeTab, setActiveTab] = useState<TabKey>('invoices');
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
@@ -92,10 +94,16 @@ export default function AccountingReportsPage() {
       setErrorMessage('');
 
       try {
-        const [invoiceResult, partyResult, itemResult] = await Promise.all([
+        const [invoiceResult, partyResult, itemResult, purchaseResult] = await Promise.all([
           supabase.from('invoices').select('*, parties(name)'),
           supabase.from('parties').select('*'),
           supabase.from('items').select('*'),
+          supabase
+            .from('purchase_invoices')
+            .select(
+              'purchase_date, supplier_invoice_number, supplier_name, transporter_name, gr_number, freight_charge, handling_charge, toll_charge, other_charge, total_transport_amount, transport_payment_status, rcm_applicable, rcm_gst_rate, rcm_gst_amount, supplier_payable_total, total_outlay',
+            )
+            .order('purchase_date', { ascending: false }),
         ]);
 
         let invoiceData = invoiceResult.data;
@@ -129,11 +137,13 @@ export default function AccountingReportsPage() {
         setInvoices(invoiceRows);
         setParties(partyRows);
         setItems(toRows(itemResult.data));
+        setPurchases(toRows(purchaseResult.data));
 
         const errors = [
           invoiceError?.message,
           partyResult.error?.message,
           itemResult.error?.message,
+          purchaseResult.error?.message,
         ].filter((message): message is string => Boolean(message));
 
         if (errors.length > 0) {
@@ -158,7 +168,7 @@ export default function AccountingReportsPage() {
     };
   }, [reloadKey, supabase]);
 
-  const reportData: Record<TabKey, DataRow[]> = { invoices, parties, items };
+  const reportData: Record<TabKey, DataRow[]> = { invoices, parties, items, purchases };
   const selectedRows = reportData[activeTab];
   const selectedTab = tabs.find((tab) => tab.id === activeTab);
   const columns = getColumns(selectedRows);
@@ -180,7 +190,7 @@ export default function AccountingReportsPage() {
             Reports &amp; data
           </h1>
           <p className="mt-2 text-sm text-slate-600">
-            Review and export your invoices, parties, and item catalog.
+            Review and export invoices, parties, items, and purchase transport/RCM records.
           </p>
         </header>
 

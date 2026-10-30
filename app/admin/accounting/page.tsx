@@ -61,6 +61,17 @@ const sections = [
     accent: 'border-cyan-200 bg-cyan-50 text-cyan-700',
     button: 'bg-cyan-700 hover:bg-cyan-800',
   },
+  {
+    number: '06',
+    category: 'Purchasing',
+    title: 'Purchase Entry & Transport',
+    description:
+      'Record supplier bills, transporter bilty charges, payment status, and RCM liability.',
+    href: '/admin/accounting/purchases',
+    action: 'Manage purchases',
+    accent: 'border-rose-200 bg-rose-50 text-rose-700',
+    button: 'bg-rose-700 hover:bg-rose-800',
+  },
 ];
 
 export default function AccountingDashboardPage() {
@@ -153,7 +164,7 @@ export default function AccountingDashboardPage() {
 
         <section
           aria-label="Accounting sections"
-          className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5"
+          className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3"
         >
           {sections.map((section) => (
             <article
