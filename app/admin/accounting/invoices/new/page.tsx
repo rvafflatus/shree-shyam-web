@@ -1,7 +1,7 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, type FormEvent } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/supabase';
 
 const addNewPartyOption = '__add_new_party__';
@@ -35,6 +35,11 @@ export default function NewInvoicePage() {
   const router = useRouter();
   const [parties, setParties] = useState<Party[]>([]);
   const [itemsMaster, setItemsMaster] = useState<Item[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   // Form State
   const [selectedParty, setSelectedParty] = useState('');
@@ -44,20 +49,128 @@ export default function NewInvoicePage() {
   ]);
 
   useEffect(() => {
-    // Dropdowns ke liye parties aur items fetch karna
+    let isActive = true;
+
     async function fetchData() {
-      const { data: pData } = await supabase.from('parties').select('*');
-      const { data: iData } = await supabase.from('items').select('*');
-      if (pData) setParties(pData);
-      if (iData) setItemsMaster(iData);
+      setIsLoading(true);
+
+      try {
+        const [partyResult, itemResult] = await Promise.all([
+          supabase.from('parties').select('id, name, gstin').order('name'),
+          supabase
+            .from('items')
+            .select('id, name, hsn_sac, purchase_price, selling_price, gst_rate')
+            .order('name'),
+        ]);
+
+        if (!isActive) return;
+
+        if (partyResult.error || itemResult.error) {
+          setErrorMessage(
+            [
+              partyResult.error?.message,
+              itemResult.error?.message,
+            ]
+              .filter(Boolean)
+              .join(' '),
+          );
+          return;
+        }
+
+        setParties(partyResult.data ?? []);
+        setItemsMaster(itemResult.data ?? []);
+      } catch (error) {
+        if (isActive) {
+          setErrorMessage(
+            error instanceof Error ? error.message : 'Unable to load invoice form data.',
+          );
+        }
+      } finally {
+        if (isActive) setIsLoading(false);
+      }
     }
-    fetchData();
+
+    void fetchData();
+
+    return () => {
+      isActive = false;
+    };
   }, []);
 
   // Nayi row add karne ke liye function
   const addItemRow = () => {
     setLineItems([...lineItems, { item_id: '', description: '', hsn_sac: '', quantity: 1, unit_price: 0, tax_rate: 18 }]);
   };
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    if (!selectedParty) {
+      setErrorMessage('Select a customer or party before saving the invoice.');
+      return;
+    }
+
+    if (lineItems.some((item) => !item.item_id)) {
+      setErrorMessage('Select an item for every invoice line or remove the empty line.');
+      return;
+    }
+
+    if (
+      lineItems.some(
+        (item) =>
+          !Number.isFinite(item.quantity) ||
+          item.quantity <= 0 ||
+          !Number.isFinite(item.unit_price) ||
+          item.unit_price < 0 ||
+          !Number.isFinite(item.tax_rate) ||
+          item.tax_rate < 0,
+      )
+    ) {
+      setErrorMessage('Check that each quantity, unit price, and GST rate is valid.');
+      return;
+    }
+
+    if (!Number.isFinite(transportCharges) || transportCharges < 0) {
+      setErrorMessage('Transport charges must be zero or a positive amount.');
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const { error } = await supabase.from('invoices').insert({
+        invoice_date: new Date().toISOString().slice(0, 10),
+        party_id: selectedParty,
+        line_items: lineItems.map((item) => ({
+          ...item,
+          line_total: Number((item.quantity * item.unit_price).toFixed(2)),
+          tax_amount: Number(
+            ((item.quantity * item.unit_price * item.tax_rate) / 100).toFixed(2),
+          ),
+        })),
+        subtotal: Number(subtotal.toFixed(2)),
+        tax_amount: Number(totalTax.toFixed(2)),
+        transport_charges: Number(transportCharges.toFixed(2)),
+        grand_total: Number(grandTotal.toFixed(2)),
+      });
+
+      if (error) {
+        setErrorMessage(`Unable to save invoice: ${error.message}`);
+        return;
+      }
+
+      setSuccessMessage('Invoice saved successfully.');
+      setIsSaved(true);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? `Unable to save invoice: ${error.message}` : 'Unable to save invoice.',
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  }
 
   // Item select hone par details auto-fill karna
   const handleItemSelect = (index: number, itemId: string) => {
@@ -91,11 +204,31 @@ export default function NewInvoicePage() {
       </Link>
       <h1 className="text-2xl font-bold mb-6 text-gray-800">Create New Tax Invoice</h1>
       
+      <form onSubmit={handleSubmit}>
+      {errorMessage && (
+        <p role="alert" className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-800">
+          {errorMessage}
+        </p>
+      )}
+      {successMessage && (
+        <div role="status" className="mb-4 rounded-md bg-green-50 p-3 text-sm text-green-800">
+          <p>{successMessage}</p>
+          <Link
+            href="/admin/accounting/reports"
+            className="mt-1 inline-block font-semibold underline underline-offset-2"
+          >
+            View accounting reports
+          </Link>
+        </div>
+      )}
+
       {/* Party Selection Dropdown */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700">Select Customer / Party</label>
+        <label htmlFor="invoice-party" className="block text-sm font-medium text-gray-700">Select Customer / Party</label>
         <select 
+          id="invoice-party"
           value={selectedParty} 
+          required
           onChange={(e) => {
             if (e.target.value === addNewPartyOption) {
               router.push('/admin/accounting/parties/new');
@@ -103,7 +236,8 @@ export default function NewInvoicePage() {
             }
             setSelectedParty(e.target.value);
           }}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
+          disabled={isLoading || isSaving || isSaved}
+          className="mt-1 block w-full rounded-md border border-gray-300 bg-white p-2 shadow-sm disabled:bg-gray-100"
         >
           <option value="">-- Choose Party --</option>
           {parties.map((p) => (
@@ -114,9 +248,9 @@ export default function NewInvoicePage() {
       </div>
 
       {/* Dynamic Multi-Item Table */}
-      <div className="mb-6">
+      <div className="mb-6 overflow-x-auto">
         <h3 className="text-lg font-medium text-gray-700 mb-2">Line Items</h3>
-        <table className="w-full border-collapse">
+        <table className="w-full min-w-[700px] border-collapse">
           <thead>
             <tr className="bg-gray-100 text-left text-xs text-gray-600 uppercase">
               <th className="p-2">Item</th>
@@ -133,6 +267,7 @@ export default function NewInvoicePage() {
                 <td className="p-2">
                   <select 
                     value={row.item_id}
+                    required
                     onChange={(e) => {
                       if (e.target.value === addNewItemOption) {
                         router.push('/admin/accounting/items/new');
@@ -140,7 +275,8 @@ export default function NewInvoicePage() {
                       }
                       handleItemSelect(index, e.target.value);
                     }}
-                    className="w-full border p-1 rounded text-sm bg-white"
+                    disabled={isLoading || isSaving || isSaved}
+                    className="w-full rounded border bg-white p-1 text-sm disabled:bg-gray-100"
                   >
                     <option value="">Select Item</option>
                     {itemsMaster.map((i) => (
@@ -149,12 +285,12 @@ export default function NewInvoicePage() {
                     <option value={addNewItemOption}>+ Add New Item</option>
                   </select>
                 </td>
-                <td className="p-2"><input type="text" value={row.hsn_sac} readOnly className="w-24 bg-gray-50 border p-1 rounded text-sm" /></td>
-                <td className="p-2"><input type="number" value={row.quantity} onChange={(e) => {
+                <td className="p-2"><input aria-label={`HSN/SAC for ${row.description || 'line item'}`} type="text" value={row.hsn_sac} readOnly className="w-24 rounded border bg-gray-50 p-1 text-sm" /></td>
+                <td className="p-2"><input aria-label={`Quantity for ${row.description || 'line item'}`} type="number" min="0.001" step="0.001" required value={row.quantity} disabled={isSaving || isSaved} onChange={(e) => {
                   const updated = [...lineItems];
-                  updated[index].quantity = Number(e.target.value);
+                  updated[index] = { ...updated[index], quantity: Number(e.target.value) };
                   setLineItems(updated);
-                }} className="w-16 border p-1 rounded text-sm" /></td>
+                }} className="w-20 rounded border p-1 text-sm" /></td>
                 <td className="p-2">
                   <input
                     type="number"
@@ -163,6 +299,8 @@ export default function NewInvoicePage() {
                     aria-label={`Unit price on invoice for ${row.description || 'line item'}`}
                     placeholder="Enter price"
                     value={row.unit_price}
+                    required
+                    disabled={isSaving || isSaved}
                     onChange={(event) => {
                       const updated = [...lineItems];
                       updated[index] = {
@@ -181,8 +319,10 @@ export default function NewInvoicePage() {
           </tbody>
         </table>
         <button 
+          type="button"
           onClick={addItemRow}
-          className="mt-3 px-4 py-1.5 bg-gray-200 text-gray-800 rounded text-sm font-medium hover:bg-gray-300"
+          disabled={isSaving || isSaved}
+          className="mt-3 rounded bg-gray-200 px-4 py-1.5 text-sm font-medium text-gray-800 hover:bg-gray-300 disabled:opacity-60"
         >
           + Add Another Item
         </button>
@@ -205,6 +345,7 @@ export default function NewInvoicePage() {
             step="0.01"
             value={transportCharges}
             onChange={(event) => setTransportCharges(Number(event.target.value) || 0)}
+            disabled={isSaving || isSaved}
             className="w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
           />
         </div>
@@ -215,9 +356,16 @@ export default function NewInvoicePage() {
           <p className="text-xl font-bold text-gray-900">Grand Total: ₹{grandTotal.toFixed(2)}</p>
         </div>
         <div className="space-x-3">
-          <button className="px-4 py-2 bg-blue-600 text-white rounded font-medium hover:bg-blue-700">Save Invoice</button>
+          <button
+            type="submit"
+            disabled={isSaving || isLoading || isSaved}
+            className="rounded bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isSaving ? 'Saving...' : isSaved ? 'Invoice Saved' : 'Save Invoice'}
+          </button>
         </div>
       </div>
+      </form>
     </div>
   );
 } 
