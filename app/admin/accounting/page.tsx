@@ -78,7 +78,7 @@ const sections = [
     title: 'Manage Invoices',
     description:
       'Review saved invoices and update or remove invoice records.',
-    href: '/admin/accounting/reports',
+    href: '/admin/accounting/invoices',
     action: 'Manage invoices',
     accent: 'border-sky-200 bg-sky-50 text-sky-700',
     button: 'bg-sky-700 hover:bg-sky-800',
