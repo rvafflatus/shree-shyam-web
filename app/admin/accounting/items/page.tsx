@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { createClient } from '@/utils/supabase/client';
 
 type Item = {
@@ -19,6 +19,10 @@ export default function ItemsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [reloadKey, setReloadKey] = useState(0);
+  const [editingItem, setEditingItem] = useState<Item | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState('');
 
   useEffect(() => {
     let isActive = true;
@@ -57,6 +61,71 @@ export default function ItemsPage() {
       isActive = false;
     };
   }, [reloadKey, supabase]);
+
+  async function handleItemUpdate(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!editingItem) return;
+
+    setIsSaving(true);
+    setActionError('');
+
+    try {
+      const { error } = await supabase
+        .from('items')
+        .update({
+          name: editingItem.name.trim(),
+          hsn_sac: editingItem.hsn_sac?.trim() || null,
+          purchase_price: editingItem.purchase_price,
+          selling_price: editingItem.selling_price,
+          gst_rate: editingItem.gst_rate,
+        })
+        .eq('id', editingItem.id)
+        .select('id')
+        .single();
+
+      if (error) {
+        setActionError(`Unable to update item: ${error.message}`);
+        return;
+      }
+
+      setEditingItem(null);
+      setReloadKey((key) => key + 1);
+    } catch (error) {
+      setActionError(
+        error instanceof Error ? error.message : 'Unable to update item. Please try again.',
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function handleItemDelete(item: Item) {
+    if (!window.confirm(`Delete "${item.name}"? This cannot be undone.`)) return;
+
+    setDeletingId(item.id);
+    setActionError('');
+
+    try {
+      const { error } = await supabase
+        .from('items')
+        .delete()
+        .eq('id', item.id)
+        .select('id')
+        .single();
+      if (error) {
+        setActionError(`Unable to delete item: ${error.message}`);
+        return;
+      }
+
+      setItems((current) => current.filter((entry) => entry.id !== item.id));
+    } catch (error) {
+      setActionError(
+        error instanceof Error ? error.message : 'Unable to delete item. Please try again.',
+      );
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 lg:px-8">
@@ -104,6 +173,12 @@ export default function ItemsPage() {
           </div>
         )}
 
+        {actionError && (
+          <p role="alert" className="mb-5 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+            {actionError}
+          </p>
+        )}
+
         <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
           {isLoading ? (
             <div
@@ -130,6 +205,7 @@ export default function ItemsPage() {
                     <th scope="col" className="px-4 py-3 font-semibold">Purchase Price</th>
                     <th scope="col" className="px-4 py-3 font-semibold">Selling Price</th>
                     <th scope="col" className="px-4 py-3 font-semibold">GST Rate</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -146,6 +222,28 @@ export default function ItemsPage() {
                       <td className="px-4 py-3 text-slate-600">
                         {item.gst_rate == null ? '—' : `${item.gst_rate}%`}
                       </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActionError('');
+                              setEditingItem({ ...item });
+                            }}
+                            className="font-medium text-blue-700 hover:text-blue-900"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            disabled={deletingId === item.id}
+                            onClick={() => void handleItemDelete(item)}
+                            className="font-medium text-red-700 hover:text-red-900 disabled:opacity-50"
+                          >
+                            {deletingId === item.id ? 'Deleting...' : 'Delete'}
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -153,6 +251,79 @@ export default function ItemsPage() {
             </div>
           )}
         </section>
+
+        {editingItem && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-950/50 p-4">
+            <section
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="edit-item-title"
+              className="my-auto w-full max-w-xl rounded-xl bg-white p-6 shadow-xl"
+            >
+              <h2 id="edit-item-title" className="text-xl font-semibold text-slate-900">
+                Edit Item
+              </h2>
+              <form className="mt-5 grid gap-4 sm:grid-cols-2" onSubmit={handleItemUpdate}>
+                {([
+                  ['name', 'Name', 'text'],
+                  ['hsn_sac', 'HSN / SAC', 'text'],
+                  ['purchase_price', 'Purchase Price (₹)', 'number'],
+                  ['selling_price', 'Selling Price (₹)', 'number'],
+                  ['gst_rate', 'GST Rate (%)', 'number'],
+                ] as const).map(([field, label, type]) => (
+                  <div key={field}>
+                    <label htmlFor={`edit-item-${field}`} className="mb-1 block text-sm font-medium text-slate-700">
+                      {label}
+                    </label>
+                    <input
+                      id={`edit-item-${field}`}
+                      type={type}
+                      min={type === 'number' ? '0' : undefined}
+                      step={type === 'number' && field !== 'gst_rate' ? '0.01' : undefined}
+                      required={field === 'name'}
+                      value={editingItem[field] ?? ''}
+                      onChange={(event) =>
+                        setEditingItem((current) => {
+                          if (!current) return current;
+                          const value =
+                            type === 'number'
+                              ? event.target.value === ''
+                                ? null
+                                : Number(event.target.value)
+                              : event.target.value;
+                          return { ...current, [field]: value };
+                        })
+                      }
+                      className="w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    />
+                  </div>
+                ))}
+                {actionError && (
+                  <p role="alert" className="sm:col-span-2 rounded-md bg-red-50 p-3 text-sm text-red-800">
+                    {actionError}
+                  </p>
+                )}
+                <div className="flex justify-end gap-3 sm:col-span-2">
+                  <button
+                    type="button"
+                    disabled={isSaving}
+                    onClick={() => setEditingItem(null)}
+                    className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSaving}
+                    className="rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-60"
+                  >
+                    {isSaving ? 'Saving...' : 'Save changes'}
+                  </button>
+                </div>
+              </form>
+            </section>
+          </div>
+        )}
       </div>
     </main>
   );

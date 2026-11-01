@@ -72,6 +72,17 @@ const sections = [
     accent: 'border-rose-200 bg-rose-50 text-rose-700',
     button: 'bg-rose-700 hover:bg-rose-800',
   },
+  {
+    number: '07',
+    category: 'Sales',
+    title: 'Manage Invoices',
+    description:
+      'Review saved invoices and update or remove invoice records.',
+    href: '/admin/accounting/reports',
+    action: 'Manage invoices',
+    accent: 'border-sky-200 bg-sky-50 text-sky-700',
+    button: 'bg-sky-700 hover:bg-sky-800',
+  },
 ];
 
 export default function AccountingDashboardPage() {
