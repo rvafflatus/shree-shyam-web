@@ -35,6 +35,7 @@ export default function NewPartyPage() {
         type: type.trim() || null,
         gstin: gstin.trim() || null,
         phone: phone.trim() || null,
+        state: state.trim() || null,
         address: address || null,
       });
 

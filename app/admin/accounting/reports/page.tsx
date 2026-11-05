@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { FormEvent } from 'react';
 import { createClient } from '@/utils/supabase/client';
+import { splitGstByPartyState } from '@/utils/accounting/gst';
 
 type DataRow = Record<string, unknown>;
 type TabKey = 'invoices' | 'parties' | 'items' | 'purchases';
@@ -151,7 +152,7 @@ export default function AccountingReportsPage() {
           supabase
             .from('purchase_invoices')
             .select(
-              'purchase_date, supplier_invoice_number, supplier_name, transporter_name, gr_number, freight_charge, handling_charge, toll_charge, other_charge, total_transport_amount, transport_payment_status, rcm_applicable, rcm_gst_rate, rcm_gst_amount, supplier_payable_total, total_outlay',
+              'purchase_date, supplier_invoice_number, supplier_name, transporter_name, gr_number, freight_charge, handling_charge, toll_charge, other_charge, total_transport_amount, cgst_amount, sgst_amount, igst_amount, tax_amount, transport_payment_status, rcm_applicable, rcm_gst_rate, rcm_gst_amount, supplier_payable_total, total_outlay',
             )
             .order('purchase_date', { ascending: false }),
         ]);
@@ -231,6 +232,10 @@ export default function AccountingReportsPage() {
     ) ?? 0;
   const editGrandTotal =
     editSubtotal + editTaxAmount + (editingInvoice?.transport_charges ?? 0);
+  const editPartyState = parties.find(
+    (party) => party.id === editingInvoice?.party_id,
+  )?.state;
+  const editGstSplit = splitGstByPartyState(editTaxAmount, typeof editPartyState === 'string' ? editPartyState : null);
 
   function updateInvoiceLine(index: number, patch: Partial<InvoiceLine>) {
     setEditingInvoice((current) =>
@@ -288,7 +293,10 @@ export default function AccountingReportsPage() {
             ),
           })),
           subtotal: Number(editSubtotal.toFixed(2)),
-          tax_amount: Number(editTaxAmount.toFixed(2)),
+          cgst_amount: editGstSplit.cgst_amount,
+          sgst_amount: editGstSplit.sgst_amount,
+          igst_amount: editGstSplit.igst_amount,
+          tax_amount: editGstSplit.tax_amount,
           transport_charges: Number(editingInvoice.transport_charges.toFixed(2)),
           grand_total: Number(editGrandTotal.toFixed(2)),
         })
@@ -714,6 +722,9 @@ export default function AccountingReportsPage() {
                 <div className="rounded-lg bg-slate-50 p-4 text-sm">
                   <p>Subtotal: ₹{editSubtotal.toFixed(2)}</p>
                   <p>GST: ₹{editTaxAmount.toFixed(2)}</p>
+                  <p>CGST: ₹{editGstSplit.cgst_amount.toFixed(2)}</p>
+                  <p>SGST: ₹{editGstSplit.sgst_amount.toFixed(2)}</p>
+                  <p>IGST: ₹{editGstSplit.igst_amount.toFixed(2)}</p>
                   <p>Transport: ₹{editingInvoice.transport_charges.toFixed(2)}</p>
                   <p className="mt-2 text-base font-bold text-slate-900">
                     Grand Total: ₹{editGrandTotal.toFixed(2)}

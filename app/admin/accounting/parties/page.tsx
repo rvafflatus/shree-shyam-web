@@ -10,6 +10,7 @@ type Party = {
   type: string | null;
   gstin: string | null;
   phone: string | null;
+  state: string | null;
   address: string | null;
 };
 
@@ -34,7 +35,7 @@ export default function PartiesPage() {
       try {
         const { data, error } = await supabase
           .from('parties')
-          .select('id, name, type, gstin, phone, address')
+          .select('id, name, type, gstin, phone, state, address')
           .order('name');
 
         if (!isActive) return;
@@ -77,6 +78,7 @@ export default function PartiesPage() {
           type: editingParty.type?.trim() || null,
           gstin: editingParty.gstin?.trim() || null,
           phone: editingParty.phone?.trim() || null,
+          state: editingParty.state?.trim() || null,
           address: editingParty.address?.trim() || null,
         })
         .eq('id', editingParty.id)
@@ -204,6 +206,7 @@ export default function PartiesPage() {
                     <th scope="col" className="px-4 py-3 font-semibold">Type</th>
                     <th scope="col" className="px-4 py-3 font-semibold">GSTIN</th>
                     <th scope="col" className="px-4 py-3 font-semibold">Phone</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">State</th>
                     <th scope="col" className="px-4 py-3 font-semibold">Address</th>
                     <th scope="col" className="px-4 py-3 font-semibold">Actions</th>
                   </tr>
@@ -215,6 +218,7 @@ export default function PartiesPage() {
                       <td className="px-4 py-3 text-slate-600">{party.type || '—'}</td>
                       <td className="px-4 py-3 text-slate-600">{party.gstin || '—'}</td>
                       <td className="px-4 py-3 text-slate-600">{party.phone || '—'}</td>
+                      <td className="px-4 py-3 text-slate-600">{party.state || '—'}</td>
                       <td className="max-w-sm whitespace-pre-line px-4 py-3 text-slate-600">
                         {party.address || '—'}
                       </td>
@@ -268,6 +272,7 @@ export default function PartiesPage() {
                   ['type', 'Type'],
                   ['gstin', 'GSTIN'],
                   ['phone', 'Phone'],
+                  ['state', 'State'],
                 ] as const).map(([field, label]) => (
                   <div key={field}>
                     <label htmlFor={`edit-party-${field}`} className="mb-1 block text-sm font-medium text-slate-700">

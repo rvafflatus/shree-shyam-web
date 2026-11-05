@@ -4,7 +4,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, type FormEvent } from 'react';
 import { createClient } from '@/utils/supabase/client';
+import { isRajasthanState, splitGstByPartyState } from '@/utils/accounting/gst';
 
+type Party = {
+  id: string;
+  name: string;
+  state: string | null;
+};
 type Item = {
   id: string;
   name: string;
@@ -41,8 +47,9 @@ function roundMoney(value: number) {
 export default function NewPurchasePage() {
   const router = useRouter();
   const [supabase] = useState(createClient);
+  const [parties, setParties] = useState<Party[]>([]);
   const [items, setItems] = useState<Item[]>([]);
-  const [supplierName, setSupplierName] = useState('');
+  const [selectedPartyId, setSelectedPartyId] = useState('');
   const [supplierInvoiceNumber, setSupplierInvoiceNumber] = useState('');
   const [purchaseDate, setPurchaseDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [lineItems, setLineItems] = useState<PurchaseLineItem[]>([emptyLineItem()]);
@@ -57,39 +64,44 @@ export default function NewPurchasePage() {
   const [transportPaymentStatus, setTransportPaymentStatus] = useState<'TO PAY' | 'PAID'>(
     'TO PAY',
   );
-  const [isLoadingItems, setIsLoadingItems] = useState(true);
+  const [isLoadingFormData, setIsLoadingFormData] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     let isActive = true;
 
-    async function loadItems() {
+    async function loadFormData() {
       try {
-        const { data, error } = await supabase
-          .from('items')
-          .select('id, name, hsn_sac, purchase_price, gst_rate')
-          .order('name');
+        const [partyResult, itemResult] = await Promise.all([
+          supabase.from('parties').select('id, name, state').order('name'),
+          supabase
+            .from('items')
+            .select('id, name, hsn_sac, purchase_price, gst_rate')
+            .order('name'),
+        ]);
 
         if (!isActive) return;
-        if (error) {
-          setErrorMessage(`Unable to load the item catalog: ${error.message}`);
+        const errors = [partyResult.error?.message, itemResult.error?.message].filter(Boolean);
+        if (errors.length > 0) {
+          setErrorMessage(`Unable to load purchase form data: ${errors.join(' ')}`);
           return;
         }
 
-        setItems(data ?? []);
+        setParties(partyResult.data ?? []);
+        setItems(itemResult.data ?? []);
       } catch (error) {
         if (isActive) {
           setErrorMessage(
-            error instanceof Error ? error.message : 'Unable to load the item catalog.',
+            error instanceof Error ? error.message : 'Unable to load purchase form data.',
           );
         }
       } finally {
-        if (isActive) setIsLoadingItems(false);
+        if (isActive) setIsLoadingFormData(false);
       }
     }
 
-    void loadItems();
+    void loadFormData();
 
     return () => {
       isActive = false;
@@ -111,6 +123,11 @@ export default function NewPurchasePage() {
   const rcmGstAmount = rcmApplicable
     ? roundMoney((totalTransportAmount * rcmGstRate) / 100)
     : 0;
+  const selectedParty = parties.find((party) => party.id === selectedPartyId);
+  const gstSplit = splitGstByPartyState(
+    goodsGstAmount + rcmGstAmount,
+    selectedParty?.state,
+  );
   const supplierPayableTotal = roundMoney(
     goodsSubtotal + goodsGstAmount + totalTransportAmount,
   );
@@ -152,6 +169,12 @@ export default function NewPurchasePage() {
       return;
     }
 
+    if (!selectedParty) {
+      setErrorMessage('Select a supplier party with its saved state before saving this purchase.');
+      setIsSaving(false);
+      return;
+    }
+
     if (
       validLineItems.some(
         (item) =>
@@ -170,7 +193,8 @@ export default function NewPurchasePage() {
 
     try {
       const { error } = await supabase.from('purchase_invoices').insert({
-        supplier_name: supplierName.trim(),
+        party_id: selectedParty.id,
+        supplier_name: selectedParty.name,
         supplier_invoice_number: supplierInvoiceNumber.trim(),
         purchase_date: purchaseDate,
         line_items: validLineItems.map((item) => ({
@@ -179,6 +203,10 @@ export default function NewPurchasePage() {
         })),
         goods_subtotal: goodsSubtotal,
         goods_gst_amount: goodsGstAmount,
+        cgst_amount: gstSplit.cgst_amount,
+        sgst_amount: gstSplit.sgst_amount,
+        igst_amount: gstSplit.igst_amount,
+        tax_amount: gstSplit.tax_amount,
         transporter_name: transporterName.trim() || null,
         gr_number: grNumber.trim() || null,
         freight_charge: freightCharge,
@@ -232,16 +260,32 @@ export default function NewPurchasePage() {
             <h2 className="text-lg font-semibold text-slate-900">Supplier Invoice</h2>
             <div className="mt-4 grid gap-4 sm:grid-cols-3">
               <div>
-                <label htmlFor="supplier-name" className="mb-1 block text-sm font-medium text-slate-700">
-                  Supplier Name
+                <label htmlFor="supplier-party" className="mb-1 block text-sm font-medium text-slate-700">
+                  Supplier / Party
                 </label>
-                <input
-                  id="supplier-name"
+                <select
+                  id="supplier-party"
                   required
-                  value={supplierName}
-                  onChange={(event) => setSupplierName(event.target.value)}
+                  disabled={isLoadingFormData || isSaving}
+                  value={selectedPartyId}
+                  onChange={(event) => setSelectedPartyId(event.target.value)}
                   className={inputClassName}
-                />
+                >
+                  <option value="">Select supplier</option>
+                  {parties.map((party) => (
+                    <option key={party.id} value={party.id}>
+                      {party.name}{party.state ? ` — ${party.state}` : ' — state missing'}
+                    </option>
+                  ))}
+                </select>
+                {selectedPartyId && (
+                  <p className="mt-1 text-xs text-slate-600">
+                    Place of supply: {selectedParty?.state || 'State not set'} ·{' '}
+                    {isRajasthanState(selectedParty?.state)
+                      ? 'CGST + SGST apply'
+                      : 'IGST applies'}
+                  </p>
+                )}
               </div>
               <div>
                 <label htmlFor="supplier-invoice" className="mb-1 block text-sm font-medium text-slate-700">
@@ -288,9 +332,9 @@ export default function NewPurchasePage() {
               </button>
             </div>
 
-            {isLoadingItems ? (
+            {isLoadingFormData ? (
               <p role="status" className="mt-5 text-sm text-slate-600">
-                Loading item catalog...
+                Loading purchase form data...
               </p>
             ) : items.length === 0 ? (
               <p className="mt-5 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
@@ -514,7 +558,23 @@ export default function NewPurchasePage() {
                 <dd>₹{goodsSubtotal.toFixed(2)}</dd>
               </div>
               <div className="flex justify-between gap-4 text-slate-600">
-                <dt>Goods GST</dt>
+                <dt>Total GST (including RCM)</dt>
+                <dd>₹{gstSplit.tax_amount.toFixed(2)}</dd>
+              </div>
+              <div className="flex justify-between gap-4 text-slate-600">
+                <dt>CGST</dt>
+                <dd>₹{gstSplit.cgst_amount.toFixed(2)}</dd>
+              </div>
+              <div className="flex justify-between gap-4 text-slate-600">
+                <dt>SGST</dt>
+                <dd>₹{gstSplit.sgst_amount.toFixed(2)}</dd>
+              </div>
+              <div className="flex justify-between gap-4 text-slate-600">
+                <dt>IGST</dt>
+                <dd>₹{gstSplit.igst_amount.toFixed(2)}</dd>
+              </div>
+              <div className="flex justify-between gap-4 text-slate-600">
+                <dt>Goods GST (before RCM)</dt>
                 <dd>₹{goodsGstAmount.toFixed(2)}</dd>
               </div>
               <div className="flex justify-between gap-4 text-slate-600">
@@ -542,7 +602,7 @@ export default function NewPurchasePage() {
             </p>
             <button
               type="submit"
-              disabled={isSaving || isLoadingItems || items.length === 0}
+              disabled={isSaving || isLoadingFormData || items.length === 0 || parties.length === 0}
               className="mt-6 w-full rounded-lg bg-blue-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
             >
               {isSaving ? 'Saving purchase...' : 'Save Purchase Entry'}

@@ -3,6 +3,7 @@ import { useState, useEffect, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/supabase';
+import { isRajasthanState, splitGstByPartyState } from '@/utils/accounting/gst';
 
 const addNewPartyOption = '__add_new_party__';
 const addNewItemOption = '__add_new_item__';
@@ -11,6 +12,7 @@ type Party = {
   id: string;
   name: string;
   gstin?: string | null;
+  state?: string | null;
 };
 
 type Item = {
@@ -30,6 +32,10 @@ type LineItem = {
   unit_price: number;
   tax_rate: number;
 };
+
+function roundMoney(value: number) {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
+}
 
 export default function NewInvoicePage() {
   const router = useRouter();
@@ -56,7 +62,7 @@ export default function NewInvoicePage() {
 
       try {
         const [partyResult, itemResult] = await Promise.all([
-          supabase.from('parties').select('id, name, gstin').order('name'),
+          supabase.from('parties').select('id, name, gstin, state').order('name'),
           supabase
             .from('items')
             .select('id, name, hsn_sac, purchase_price, selling_price, gst_rate')
@@ -151,7 +157,10 @@ export default function NewInvoicePage() {
           ),
         })),
         subtotal: Number(subtotal.toFixed(2)),
-        tax_amount: Number(totalTax.toFixed(2)),
+        cgst_amount: gstSplit.cgst_amount,
+        sgst_amount: gstSplit.sgst_amount,
+        igst_amount: gstSplit.igst_amount,
+        tax_amount: gstSplit.tax_amount,
         transport_charges: Number(transportCharges.toFixed(2)),
         grand_total: Number(grandTotal.toFixed(2)),
       });
@@ -190,9 +199,11 @@ export default function NewInvoicePage() {
   };
 
   // Calculations
-  const subtotal = lineItems.reduce((acc, curr) => acc + (curr.quantity * curr.unit_price), 0);
-  const totalTax = lineItems.reduce((acc, curr) => acc + ((curr.quantity * curr.unit_price * curr.tax_rate) / 100), 0);
-  const grandTotal = subtotal + totalTax + transportCharges;
+  const subtotal = roundMoney(lineItems.reduce((acc, curr) => acc + (curr.quantity * curr.unit_price), 0));
+  const totalTax = roundMoney(lineItems.reduce((acc, curr) => acc + ((curr.quantity * curr.unit_price * curr.tax_rate) / 100), 0));
+  const selectedPartyState = parties.find((party) => party.id === selectedParty)?.state;
+  const gstSplit = splitGstByPartyState(totalTax, selectedPartyState);
+  const grandTotal = roundMoney(subtotal + gstSplit.tax_amount + transportCharges);
 
   return (
     <div className="p-6 max-w-4xl mx-auto bg-white shadow rounded-lg my-6">
@@ -245,6 +256,14 @@ export default function NewInvoicePage() {
           ))}
           <option value={addNewPartyOption}>+ Add New Party</option>
         </select>
+        {selectedParty && (
+          <p className="mt-1 text-xs text-gray-600">
+            Place of supply: {selectedPartyState || 'State not set'} ·{' '}
+            {isRajasthanState(selectedPartyState)
+              ? 'CGST + SGST apply'
+              : 'IGST applies'}
+          </p>
+        )}
       </div>
 
       {/* Dynamic Multi-Item Table */}
@@ -352,6 +371,9 @@ export default function NewInvoicePage() {
         <div>
           <p className="text-sm text-gray-600">Subtotal: ₹{subtotal.toFixed(2)}</p>
           <p className="text-sm text-gray-600">Estimated Tax (GST): ₹{totalTax.toFixed(2)}</p>
+          <p className="text-sm text-gray-600">CGST: ₹{gstSplit.cgst_amount.toFixed(2)}</p>
+          <p className="text-sm text-gray-600">SGST: ₹{gstSplit.sgst_amount.toFixed(2)}</p>
+          <p className="text-sm text-gray-600">IGST: ₹{gstSplit.igst_amount.toFixed(2)}</p>
           <p className="text-sm text-gray-600">Freight / Transport: ₹{transportCharges.toFixed(2)}</p>
           <p className="text-xl font-bold text-gray-900">Grand Total: ₹{grandTotal.toFixed(2)}</p>
         </div>

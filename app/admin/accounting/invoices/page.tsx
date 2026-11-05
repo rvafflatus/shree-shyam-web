@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState, type FormEvent } from 'react';
 import { createClient } from '@/utils/supabase/client';
+import { splitGstByPartyState } from '@/utils/accounting/gst';
 
 type InvoiceLine = {
   item_id: string;
@@ -21,11 +22,14 @@ type Invoice = {
   line_items: InvoiceLine[];
   subtotal: number;
   tax_amount: number;
+  cgst_amount: number;
+  sgst_amount: number;
+  igst_amount: number;
   transport_charges: number;
   grand_total: number;
 };
 
-type Party = { id: string; name: string };
+type Party = { id: string; name: string; state: string | null };
 
 function asInvoiceLine(value: unknown): InvoiceLine {
   if (typeof value !== 'object' || value === null) {
@@ -69,9 +73,9 @@ export default function InvoicesPage() {
         const [invoiceResult, partyResult] = await Promise.all([
           supabase
             .from('invoices')
-            .select('id, invoice_date, party_id, line_items, subtotal, tax_amount, transport_charges, grand_total')
+            .select('id, invoice_date, party_id, line_items, subtotal, tax_amount, cgst_amount, sgst_amount, igst_amount, transport_charges, grand_total')
             .order('invoice_date', { ascending: false }),
-          supabase.from('parties').select('id, name'),
+          supabase.from('parties').select('id, name, state'),
         ]);
 
         if (!active) return;
@@ -135,6 +139,10 @@ export default function InvoicesPage() {
       (sum, line) => sum + (line.quantity * line.unit_price * line.tax_rate) / 100,
       0,
     ) ?? 0;
+  const selectedPartyState = parties.find(
+    (party) => party.id === editingInvoice?.party_id,
+  )?.state;
+  const gstSplit = splitGstByPartyState(tax, selectedPartyState);
   const total = subtotal + tax + (editingInvoice?.transport_charges ?? 0);
 
   async function saveInvoice(event: FormEvent<HTMLFormElement>) {
@@ -178,7 +186,10 @@ export default function InvoicesPage() {
             ),
           })),
           subtotal: Number(subtotal.toFixed(2)),
-          tax_amount: Number(tax.toFixed(2)),
+          cgst_amount: gstSplit.cgst_amount,
+          sgst_amount: gstSplit.sgst_amount,
+          igst_amount: gstSplit.igst_amount,
+          tax_amount: gstSplit.tax_amount,
           transport_charges: Number(editingInvoice.transport_charges.toFixed(2)),
           grand_total: Number(total.toFixed(2)),
         })
@@ -299,13 +310,16 @@ export default function InvoicesPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[950px] border-collapse text-left text-sm">
+              <table className="w-full min-w-[1150px] border-collapse text-left text-sm">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                     <th scope="col" className="px-4 py-3 font-semibold">Date</th>
                     <th scope="col" className="px-4 py-3 font-semibold">Customer</th>
                     <th scope="col" className="px-4 py-3 font-semibold">Subtotal</th>
                     <th scope="col" className="px-4 py-3 font-semibold">GST</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">CGST</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">SGST</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">IGST</th>
                     <th scope="col" className="px-4 py-3 font-semibold">Transport</th>
                     <th scope="col" className="px-4 py-3 font-semibold">Grand Total</th>
                     <th scope="col" className="sticky right-0 bg-slate-50 px-4 py-3 font-semibold shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.5)]">
@@ -320,6 +334,9 @@ export default function InvoicesPage() {
                       <td className="px-4 py-3 font-medium text-slate-900">{invoice.party_name}</td>
                       <td className="px-4 py-3 text-slate-700">{amount(invoice.subtotal)}</td>
                       <td className="px-4 py-3 text-slate-700">{amount(invoice.tax_amount)}</td>
+                      <td className="px-4 py-3 text-slate-700">{amount(invoice.cgst_amount)}</td>
+                      <td className="px-4 py-3 text-slate-700">{amount(invoice.sgst_amount)}</td>
+                      <td className="px-4 py-3 text-slate-700">{amount(invoice.igst_amount)}</td>
                       <td className="px-4 py-3 text-slate-700">{amount(invoice.transport_charges)}</td>
                       <td className="px-4 py-3 font-semibold text-slate-900">{amount(invoice.grand_total)}</td>
                       <td className="sticky right-0 whitespace-nowrap bg-white px-4 py-3 shadow-[-8px_0_12px_-12px_rgba(15,23,42,0.5)]">
@@ -494,6 +511,9 @@ export default function InvoicesPage() {
                 <div className="rounded-lg bg-slate-50 p-4 text-sm text-slate-700">
                   <p>Subtotal: {amount(subtotal)}</p>
                   <p>GST: {amount(tax)}</p>
+                  <p>CGST: {amount(gstSplit.cgst_amount)}</p>
+                  <p>SGST: {amount(gstSplit.sgst_amount)}</p>
+                  <p>IGST: {amount(gstSplit.igst_amount)}</p>
                   <p>Transport: {amount(editingInvoice.transport_charges)}</p>
                   <p className="mt-2 text-base font-bold text-slate-900">Grand Total: {amount(total)}</p>
                 </div>

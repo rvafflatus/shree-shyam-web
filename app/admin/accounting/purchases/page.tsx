@@ -12,6 +12,10 @@ type PurchaseInvoice = {
   transporter_name: string | null;
   gr_number: string | null;
   total_transport_amount: number;
+  cgst_amount: number;
+  sgst_amount: number;
+  igst_amount: number;
+  tax_amount: number;
   rcm_applicable: boolean;
   rcm_gst_rate: number;
   rcm_gst_amount: number;
@@ -39,7 +43,7 @@ export default function PurchasesPage() {
         const { data, error } = await supabase
           .from('purchase_invoices')
           .select(
-            'id, supplier_name, supplier_invoice_number, purchase_date, transporter_name, gr_number, total_transport_amount, rcm_applicable, rcm_gst_rate, rcm_gst_amount, transport_payment_status, supplier_payable_total, total_outlay',
+            'id, supplier_name, supplier_invoice_number, purchase_date, transporter_name, gr_number, total_transport_amount, cgst_amount, sgst_amount, igst_amount, tax_amount, rcm_applicable, rcm_gst_rate, rcm_gst_amount, transport_payment_status, supplier_payable_total, total_outlay',
           )
           .order('purchase_date', { ascending: false });
 
@@ -134,7 +138,7 @@ export default function PurchasesPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1200px] border-collapse text-left text-sm">
+              <table className="w-full min-w-[1450px] border-collapse text-left text-sm">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                     <th scope="col" className="px-4 py-3 font-semibold">Date / Bill</th>
@@ -142,7 +146,11 @@ export default function PurchasesPage() {
                     <th scope="col" className="px-4 py-3 font-semibold">Transporter / G.R.</th>
                     <th scope="col" className="px-4 py-3 font-semibold">Transport Total</th>
                     <th scope="col" className="px-4 py-3 font-semibold">Transport Status</th>
-                    <th scope="col" className="px-4 py-3 font-semibold">RCM Rate / GST</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">CGST</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">SGST</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">IGST</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">Tax Total</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">RCM GST</th>
                     <th scope="col" className="px-4 py-3 font-semibold">Supplier Payable</th>
                     <th scope="col" className="px-4 py-3 font-semibold">Total Outlay</th>
                   </tr>
@@ -169,6 +177,10 @@ export default function PurchasesPage() {
                           {purchase.transport_payment_status}
                         </span>
                       </td>
+                      <td className="px-4 py-3 text-slate-700">{formatCurrency(purchase.cgst_amount)}</td>
+                      <td className="px-4 py-3 text-slate-700">{formatCurrency(purchase.sgst_amount)}</td>
+                      <td className="px-4 py-3 text-slate-700">{formatCurrency(purchase.igst_amount)}</td>
+                      <td className="px-4 py-3 text-slate-700">{formatCurrency(purchase.tax_amount)}</td>
                       <td className="px-4 py-3 text-slate-700">
                         {purchase.rcm_applicable
                           ? `${purchase.rcm_gst_rate}% · ${formatCurrency(purchase.rcm_gst_amount)}`
