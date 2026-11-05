@@ -2,7 +2,7 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/supabase';
+import { createClient } from '@/utils/supabase/client';
 import { isRajasthanState, splitGstByPartyState } from '@/utils/accounting/gst';
 
 const addNewPartyOption = '__add_new_party__';
@@ -18,9 +18,8 @@ type Party = {
 type Item = {
   id: string;
   name: string;
-  hsn_sac: string;
-  purchase_price: number | null;
-  selling_price: number;
+  hsn_sac: string | null;
+  selling_price: number | null;
   gst_rate: number;
 };
 
@@ -39,6 +38,7 @@ function roundMoney(value: number) {
 
 export default function NewInvoicePage() {
   const router = useRouter();
+  const [supabase] = useState(createClient);
   const [parties, setParties] = useState<Party[]>([]);
   const [itemsMaster, setItemsMaster] = useState<Item[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -65,7 +65,7 @@ export default function NewInvoicePage() {
           supabase.from('parties').select('id, name, gstin, state').order('name'),
           supabase
             .from('items')
-            .select('id, name, hsn_sac, purchase_price, selling_price, gst_rate')
+            .select('id, name, hsn_sac, selling_price, gst_rate')
             .order('name'),
         ]);
 
@@ -101,7 +101,7 @@ export default function NewInvoicePage() {
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [supabase]);
 
   // Nayi row add karne ke liye function
   const addItemRow = () => {
@@ -189,9 +189,9 @@ export default function NewInvoicePage() {
       updated[index] = {
         item_id: selected.id,
         description: selected.name,
-        hsn_sac: selected.hsn_sac,
+        hsn_sac: selected.hsn_sac ?? '',
         quantity: 1,
-        unit_price: selected.selling_price,
+        unit_price: selected.selling_price ?? 0,
         tax_rate: selected.gst_rate
       };
     }
@@ -250,12 +250,26 @@ export default function NewInvoicePage() {
           disabled={isLoading || isSaving || isSaved}
           className="mt-1 block w-full rounded-md border border-gray-300 bg-white p-2 shadow-sm disabled:bg-gray-100"
         >
-          <option value="">-- Choose Party --</option>
+          <option value="">
+            {isLoading
+              ? 'Loading parties...'
+              : parties.length
+                ? '-- Choose Party --'
+                : 'No parties found'}
+          </option>
           {parties.map((p) => (
             <option key={p.id} value={p.id}>{p.name} {p.gstin ? `(${p.gstin})` : ''}</option>
           ))}
           <option value={addNewPartyOption}>+ Add New Party</option>
         </select>
+        {!isLoading && parties.length === 0 && (
+          <Link
+            href="/admin/accounting/parties/new"
+            className="mt-2 inline-flex text-sm font-medium text-blue-700 underline underline-offset-2 hover:text-blue-900"
+          >
+            Add a party to continue
+          </Link>
+        )}
         {selectedParty && (
           <p className="mt-1 text-xs text-gray-600">
             Place of supply: {selectedPartyState || 'State not set'} ·{' '}
@@ -297,12 +311,26 @@ export default function NewInvoicePage() {
                     disabled={isLoading || isSaving || isSaved}
                     className="w-full rounded border bg-white p-1 text-sm disabled:bg-gray-100"
                   >
-                    <option value="">Select Item</option>
+                    <option value="">
+                      {isLoading
+                        ? 'Loading items...'
+                        : itemsMaster.length
+                          ? 'Select Item'
+                          : 'No items found'}
+                    </option>
                     {itemsMaster.map((i) => (
                       <option key={i.id} value={i.id}>{i.name}</option>
                     ))}
                     <option value={addNewItemOption}>+ Add New Item</option>
                   </select>
+                  {!isLoading && itemsMaster.length === 0 && (
+                    <Link
+                      href="/admin/accounting/items/new"
+                      className="mt-1 inline-flex text-xs font-medium text-blue-700 underline underline-offset-2 hover:text-blue-900"
+                    >
+                      Add an item to continue
+                    </Link>
+                  )}
                 </td>
                 <td className="p-2"><input aria-label={`HSN/SAC for ${row.description || 'line item'}`} type="text" value={row.hsn_sac} readOnly className="w-24 rounded border bg-gray-50 p-1 text-sm" /></td>
                 <td className="p-2"><input aria-label={`Quantity for ${row.description || 'line item'}`} type="number" min="0.001" step="0.001" required value={row.quantity} disabled={isSaving || isSaved} onChange={(e) => {
