@@ -4,7 +4,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, type FormEvent } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { isRajasthanState, splitGstByPartyState } from '@/utils/accounting/gst';
+import {
+  getPartyState,
+  isRajasthanState,
+  splitGstByPartyState,
+} from '@/utils/accounting/gst';
 
 type Party = {
   id: string;
@@ -74,7 +78,7 @@ export default function NewPurchasePage() {
     async function loadFormData() {
       try {
         const [partyResult, itemResult] = await Promise.all([
-          supabase.from('parties').select('id, name, state').order('name'),
+          supabase.from('parties').select('id, name, address').order('name'),
           supabase
             .from('items')
             .select('id, name, hsn_sac, purchase_price, gst_rate')
@@ -88,7 +92,12 @@ export default function NewPurchasePage() {
           return;
         }
 
-        setParties(partyResult.data ?? []);
+        setParties(
+          (partyResult.data ?? []).map((party) => ({
+            ...party,
+            state: getPartyState(null, party.address),
+          })),
+        );
         setItems(itemResult.data ?? []);
       } catch (error) {
         if (isActive) {

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState, type FormEvent } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { splitGstByPartyState } from '@/utils/accounting/gst';
+import { getPartyState, splitGstByPartyState } from '@/utils/accounting/gst';
 
 type InvoiceLine = {
   item_id: string;
@@ -29,7 +29,7 @@ type Invoice = {
   grand_total: number;
 };
 
-type Party = { id: string; name: string; state: string | null };
+type Party = { id: string; name: string; state: string | null; address: string | null };
 
 function asInvoiceLine(value: unknown): InvoiceLine {
   if (typeof value !== 'object' || value === null) {
@@ -75,7 +75,7 @@ export default function InvoicesPage() {
             .from('invoices')
             .select('id, invoice_date, party_id, line_items, subtotal, tax_amount, cgst_amount, sgst_amount, igst_amount, transport_charges, grand_total')
             .order('invoice_date', { ascending: false }),
-          supabase.from('parties').select('id, name, state'),
+          supabase.from('parties').select('id, name, address'),
         ]);
 
         if (!active) return;
@@ -88,7 +88,10 @@ export default function InvoicesPage() {
           return;
         }
 
-        const loadedParties = partyResult.data ?? [];
+        const loadedParties = (partyResult.data ?? []).map((party) => ({
+          ...party,
+          state: getPartyState(null, party.address),
+        }));
         const names = new Map(loadedParties.map((party) => [party.id, party.name]));
         setParties(loadedParties);
         setInvoices(

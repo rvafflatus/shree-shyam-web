@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { FormEvent } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { splitGstByPartyState } from '@/utils/accounting/gst';
+import { getPartyState, splitGstByPartyState } from '@/utils/accounting/gst';
 
 type DataRow = Record<string, unknown>;
 type TabKey = 'invoices' | 'parties' | 'items' | 'purchases';
@@ -168,7 +168,13 @@ export default function AccountingReportsPage() {
 
         if (!isActive) return;
 
-        const partyRows = toRows(partyResult.data);
+        const partyRows: DataRow[] = toRows(partyResult.data).map((party): DataRow => ({
+          ...party,
+          state: getPartyState(
+            typeof party.state === 'string' ? party.state : null,
+            typeof party.address === 'string' ? party.address : null,
+          ),
+        }));
         const partyNames = new Map(
           partyRows.map((party) => [party.id, party.name]),
         );

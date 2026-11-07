@@ -3,6 +3,11 @@
 import Link from 'next/link';
 import { useEffect, useState, type FormEvent } from 'react';
 import { createClient } from '@/utils/supabase/client';
+import {
+  getPartyState,
+  isMissingPartyStateColumn,
+  setPartyAddressState,
+} from '@/utils/accounting/gst';
 
 type Party = {
   id: string;
@@ -35,7 +40,7 @@ export default function PartiesPage() {
       try {
         const { data, error } = await supabase
           .from('parties')
-          .select('id, name, type, gstin, phone, state, address')
+          .select('id, name, type, gstin, phone, address')
           .order('name');
 
         if (!isActive) return;
@@ -44,7 +49,12 @@ export default function PartiesPage() {
           return;
         }
 
-        setParties(data ?? []);
+        setParties(
+          (data ?? []).map((party) => ({
+            ...party,
+            state: getPartyState(null, party.address),
+          })),
+        );
       } catch (error) {
         if (isActive) {
           setErrorMessage(
@@ -71,19 +81,36 @@ export default function PartiesPage() {
     setActionError('');
 
     try {
-      const { error } = await supabase
+      const partyData = {
+        name: editingParty.name.trim(),
+        type: editingParty.type?.trim() || null,
+        gstin: editingParty.gstin?.trim() || null,
+        phone: editingParty.phone?.trim() || null,
+        state: editingParty.state?.trim() || null,
+        address: setPartyAddressState(editingParty.address, editingParty.state),
+      };
+      let { error } = await supabase
         .from('parties')
-        .update({
-          name: editingParty.name.trim(),
-          type: editingParty.type?.trim() || null,
-          gstin: editingParty.gstin?.trim() || null,
-          phone: editingParty.phone?.trim() || null,
-          state: editingParty.state?.trim() || null,
-          address: editingParty.address?.trim() || null,
-        })
+        .update(partyData)
         .eq('id', editingParty.id)
         .select('id')
         .single();
+
+      if (error && isMissingPartyStateColumn(error.message)) {
+        const legacyPartyData = {
+          name: partyData.name,
+          type: partyData.type,
+          gstin: partyData.gstin,
+          phone: partyData.phone,
+          address: partyData.address,
+        };
+        ({ error } = await supabase
+          .from('parties')
+          .update(legacyPartyData)
+          .eq('id', editingParty.id)
+          .select('id')
+          .single());
+      }
 
       if (error) {
         setActionError(`Unable to update party: ${error.message}`);

@@ -2,9 +2,11 @@
 
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
-import { supabase } from '@/supabase';
+import { createClient } from '@/utils/supabase/client';
+import { isMissingPartyStateColumn } from '@/utils/accounting/gst';
 
 export default function NewPartyPage() {
+  const [supabase] = useState(createClient);
   const [name, setName] = useState('');
   const [type, setType] = useState('');
   const [gstin, setGstin] = useState('');
@@ -30,14 +32,26 @@ export default function NewPartyPage() {
       ]
         .filter(Boolean)
         .join('\n');
-      const { error } = await supabase.from('parties').insert({
+      const partyData = {
         name: name.trim(),
         type: type.trim() || null,
         gstin: gstin.trim() || null,
         phone: phone.trim() || null,
         state: state.trim() || null,
         address: address || null,
-      });
+      };
+      let { error } = await supabase.from('parties').insert(partyData);
+
+      if (error && isMissingPartyStateColumn(error.message)) {
+        const legacyPartyData = {
+          name: partyData.name,
+          type: partyData.type,
+          gstin: partyData.gstin,
+          phone: partyData.phone,
+          address: partyData.address,
+        };
+        ({ error } = await supabase.from('parties').insert(legacyPartyData));
+      }
 
       if (error) {
         setErrorMessage(error.message);
