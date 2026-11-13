@@ -4,6 +4,9 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 
+const demoEmail =
+  process.env.NEXT_PUBLIC_DEMO_EMAIL ?? 'demo@shreeshyams.in';
+
 export default function LoginPage() {
   const router = useRouter();
   const [supabase] = useState(createClient);
@@ -25,7 +28,8 @@ export default function LoginPage() {
       const user = data.session?.user;
       if (!user) return;
 
-      if (user.is_anonymous || user.app_metadata.accounting_role === 'admin') {
+      const accessRole = user.app_metadata.accounting_role;
+      if (accessRole === 'demo' || accessRole === 'admin') {
         router.replace('/admin/accounting');
         return;
       }
@@ -94,17 +98,31 @@ export default function LoginPage() {
     setErrorMessage('');
 
     try {
-      const { data, error } = await supabase.auth.signInAnonymously();
-
-      if (error) {
+      const demoPassword = process.env.NEXT_PUBLIC_DEMO_PASSWORD;
+      if (!demoPassword) {
         setErrorMessage(
-          `Unable to start Demo Mode: ${error.message}. Anonymous Sign-Ins may need to be enabled in Supabase.`,
+          'Demo Login is not configured. Set NEXT_PUBLIC_DEMO_PASSWORD and rebuild the app.',
         );
         return;
       }
 
-      if (!data.user?.is_anonymous) {
-        setErrorMessage('Supabase did not create a read-only demo session.');
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: demoEmail,
+        password: demoPassword,
+      });
+
+      if (error) {
+        setErrorMessage(`Unable to start Demo Mode: ${error.message}`);
+        return;
+      }
+
+      if (data.user?.app_metadata.accounting_role !== 'demo') {
+        const { error: signOutError } = await supabase.auth.signOut();
+        setErrorMessage(
+          signOutError
+            ? `The configured account is not marked as a read-only demo user. Sign-out failed: ${signOutError.message}`
+            : 'The configured account is not marked as a read-only demo user.',
+        );
         return;
       }
 

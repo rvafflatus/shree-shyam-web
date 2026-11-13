@@ -26,7 +26,7 @@ export default function AccountingLayoutShell({
   const [authError, setAuthError] = useState('');
   const [showDemoNotice, setShowDemoNotice] = useState(false);
   const accountingShellRef = useRef<HTMLDivElement>(null);
-  const isDemo = session?.user.is_anonymous === true;
+  const isDemo = session?.user.app_metadata.accounting_role === 'demo';
   const isAdmin = session?.user.app_metadata.accounting_role === 'admin';
 
   useEffect(() => {
@@ -123,7 +123,7 @@ export default function AccountingLayoutShell({
   }
 
   function blockDemoAction(event: MouseEvent<HTMLDivElement>) {
-    if (session?.user.is_anonymous !== true) return;
+    if (!isDemo) return;
 
     const target = event.target;
     if (!(target instanceof Element)) return;
@@ -139,7 +139,7 @@ export default function AccountingLayoutShell({
   }
 
   function blockDemoFormSubmit(event: FormEvent<HTMLDivElement>) {
-    if (session?.user.is_anonymous !== true) return;
+    if (!isDemo) return;
     if (!(event.target instanceof HTMLFormElement)) return;
 
     event.preventDefault();
@@ -148,7 +148,7 @@ export default function AccountingLayoutShell({
   }
 
   function blockDemoRouteChange(event: ChangeEvent<HTMLDivElement>) {
-    if (session?.user.is_anonymous !== true) return;
+    if (!isDemo) return;
 
     const target = event.target;
     if (!(target instanceof HTMLSelectElement)) return;
