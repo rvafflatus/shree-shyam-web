@@ -72,6 +72,7 @@ export default function AccountingSidebar() {
       <div className="grid grid-cols-2 gap-2 px-4 pb-5 lg:grid-cols-1">
         <Link
           href="/admin/accounting/invoices/new"
+          data-demo-mutation-action
           className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300"
         >
           <span aria-hidden="true" className="text-lg leading-none">+</span>
@@ -79,6 +80,7 @@ export default function AccountingSidebar() {
         </Link>
         <Link
           href="/admin/accounting/purchases/new"
+          data-demo-mutation-action
           className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-semibold text-slate-100 transition hover:border-slate-500 hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-300"
         >
           <span aria-hidden="true" className="text-lg leading-none">+</span>

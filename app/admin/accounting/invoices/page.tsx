@@ -274,6 +274,7 @@ export default function InvoicesPage() {
           </div>
           <Link
             href="/admin/accounting/invoices/new"
+            data-demo-mutation-action
             className="inline-flex min-h-11 items-center justify-center rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800"
           >
             Create New Invoice
@@ -306,6 +307,7 @@ export default function InvoicesPage() {
               <p className="font-medium text-slate-900">No saved invoices found</p>
               <Link
                 href="/admin/accounting/invoices/new"
+                data-demo-mutation-action
                 className="font-semibold text-blue-700 hover:text-blue-900"
               >
                 Create your first invoice
@@ -346,6 +348,7 @@ export default function InvoicesPage() {
                         <div className="flex items-center gap-3">
                           <button
                             type="button"
+                            data-demo-mutation-action
                             onClick={() => {
                               setErrorMessage('');
                               setEditingInvoice({ ...invoice });
@@ -356,6 +359,7 @@ export default function InvoicesPage() {
                           </button>
                           <button
                             type="button"
+                            data-demo-mutation-action
                             disabled={deletingId === invoice.id}
                             onClick={() => void deleteInvoice(invoice)}
                             className="rounded px-2 py-1 font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"

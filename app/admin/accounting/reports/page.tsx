@@ -520,6 +520,7 @@ export default function AccountingReportsPage() {
                             <div className="flex items-center gap-3">
                               <button
                                 type="button"
+                                data-demo-mutation-action
                                 disabled={!getEditableInvoice(row)}
                                 onClick={() => {
                                   const invoice = getEditableInvoice(row);
@@ -533,6 +534,7 @@ export default function AccountingReportsPage() {
                               </button>
                               <button
                                 type="button"
+                                data-demo-mutation-action
                                 disabled={typeof row.id !== 'string' || deletingInvoiceId === row.id}
                                 onClick={() => void handleInvoiceDelete(row)}
                                 className="font-medium text-red-700 hover:text-red-900 disabled:cursor-not-allowed disabled:opacity-50"

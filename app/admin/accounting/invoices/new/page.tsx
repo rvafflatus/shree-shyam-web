@@ -269,11 +269,12 @@ export default function NewInvoicePage() {
           {parties.map((p) => (
             <option key={p.id} value={p.id}>{p.name} {p.gstin ? `(${p.gstin})` : ''}</option>
           ))}
-          <option value={addNewPartyOption}>+ Add New Party</option>
+          <option value={addNewPartyOption} data-demo-mutation-action>+ Add New Party</option>
         </select>
         {!isLoading && parties.length === 0 && (
           <Link
             href="/admin/accounting/parties/new"
+            data-demo-mutation-action
             className="mt-2 inline-flex text-sm font-medium text-blue-700 underline underline-offset-2 hover:text-blue-900"
           >
             Add a party to continue
@@ -330,11 +331,12 @@ export default function NewInvoicePage() {
                     {itemsMaster.map((i) => (
                       <option key={i.id} value={i.id}>{i.name}</option>
                     ))}
-                    <option value={addNewItemOption}>+ Add New Item</option>
+                    <option value={addNewItemOption} data-demo-mutation-action>+ Add New Item</option>
                   </select>
                   {!isLoading && itemsMaster.length === 0 && (
                     <Link
                       href="/admin/accounting/items/new"
+                      data-demo-mutation-action
                       className="mt-1 inline-flex text-xs font-medium text-blue-700 underline underline-offset-2 hover:text-blue-900"
                     >
                       Add an item to continue
@@ -376,6 +378,7 @@ export default function NewInvoicePage() {
         </table>
         <button 
           type="button"
+          data-demo-mutation-action
           onClick={addItemRow}
           disabled={isSaving || isSaved}
           className="mt-3 rounded bg-gray-200 px-4 py-1.5 text-sm font-medium text-gray-800 hover:bg-gray-300 disabled:opacity-60"

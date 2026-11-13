@@ -241,6 +241,7 @@ export default function NewPartyPage() {
 
         <Link
           href="/admin/accounting/invoices/new"
+          data-demo-mutation-action
           className="mt-4 block text-center text-sm font-medium text-blue-700 hover:text-blue-900"
         >
           Return to invoice

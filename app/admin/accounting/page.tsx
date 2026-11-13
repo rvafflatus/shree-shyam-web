@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Bar,
   BarChart,
@@ -13,9 +13,7 @@ import {
   YAxis,
 } from 'recharts';
 import { createClient } from '@/utils/supabase/client';
-import AccountingSidebar from '@/components/accounting/AccountingSidebar';
 
-const dashboardPin = '9028';
 const currencyFormatter = new Intl.NumberFormat('en-IN', {
   style: 'currency',
   currency: 'INR',
@@ -78,8 +76,6 @@ function formatDate(value: string): string {
 
 export default function AccountingDashboardPage() {
   const [supabase] = useState(createClient);
-  const [pin, setPin] = useState('');
-  const [isUnlocked, setIsUnlocked] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [invoices, setInvoices] = useState<InvoiceSummary[]>([]);
   const [purchases, setPurchases] = useState<PurchaseSummary[]>([]);
@@ -87,8 +83,6 @@ export default function AccountingDashboardPage() {
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
-    if (!isUnlocked) return;
-
     let isActive = true;
 
     async function loadDashboard() {
@@ -153,20 +147,7 @@ export default function AccountingDashboardPage() {
     return () => {
       isActive = false;
     };
-  }, [isUnlocked, reloadKey, supabase]);
-
-  function handlePinSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setErrorMessage('');
-
-    if (pin !== dashboardPin) {
-      setPin('');
-      setErrorMessage('Incorrect PIN. Please try again.');
-      return;
-    }
-
-    setIsUnlocked(true);
-  }
+  }, [reloadKey, supabase]);
 
   const salesTotal = invoices.reduce(
     (total, invoice) => total + invoice.grand_total,
@@ -236,68 +217,11 @@ export default function AccountingDashboardPage() {
     .sort((left, right) => right.date.localeCompare(left.date))
     .slice(0, 6);
 
-  if (!isUnlocked) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
-        <section className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-          <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">
-            Shree Shyam Accounting
-          </p>
-          <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
-            Accounting Dashboard
-          </h1>
-          <p className="mt-2 text-sm text-slate-600">
-            Enter your PIN to continue.
-          </p>
-
-          <form className="mt-6 space-y-4" onSubmit={handlePinSubmit}>
-            <div>
-              <label
-                htmlFor="accounting-pin"
-                className="mb-1 block text-sm font-medium text-slate-700"
-              >
-                Dashboard PIN
-              </label>
-              <input
-                id="accounting-pin"
-                name="pin"
-                type="password"
-                inputMode="numeric"
-                autoComplete="current-password"
-                maxLength={4}
-                required
-                value={pin}
-                onChange={(event) => setPin(event.target.value)}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
-
-            {errorMessage && (
-              <p role="alert" className="text-sm text-red-700">
-                {errorMessage}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              className="w-full rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
-            >
-              Enter dashboard
-            </button>
-          </form>
-        </section>
-      </main>
-    );
-  }
-
   const unavailable = Boolean(errorMessage);
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 lg:flex">
-      <AccountingSidebar />
-
-      <main className="min-w-0 flex-1 lg:ml-64">
-        <div className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-9">
+    <main className="min-h-screen bg-slate-50 text-slate-900">
+      <div className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-9">
           <header className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-sm font-medium text-slate-500">
@@ -577,9 +501,8 @@ export default function AccountingDashboardPage() {
                 </ul>
               )}
             </section>
-          </div>
-        </div>
-      </main>
-    </div>
+      </div>
+      </div>
+    </main>
   );
 }

@@ -98,6 +98,7 @@ export default function PurchasesPage() {
           </div>
           <Link
             href="/admin/accounting/purchases/new"
+            data-demo-mutation-action
             className="inline-flex min-h-11 items-center justify-center rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-800"
           >
             Add purchase entry

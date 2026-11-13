@@ -121,6 +121,7 @@ export default function LeadsPage() {
             </button>
             <Link
               href="/admin/accounting/leads/new"
+              data-demo-mutation-action
               className="inline-flex min-h-11 items-center justify-center rounded-lg bg-cyan-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-cyan-800"
             >
               Add new lead

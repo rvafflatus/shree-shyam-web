@@ -334,6 +334,7 @@ export default function NewPurchasePage() {
               </div>
               <button
                 type="button"
+                data-demo-mutation-action
                 onClick={() => setLineItems((current) => [...current, emptyLineItem()])}
                 className="inline-flex min-h-10 items-center justify-center rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
               >
@@ -426,6 +427,7 @@ export default function NewPurchasePage() {
                       {lineItems.length > 1 && (
                         <button
                           type="button"
+                          data-demo-mutation-action
                           onClick={() =>
                             setLineItems((current) =>
                               current.filter((_, itemIndex) => itemIndex !== index),

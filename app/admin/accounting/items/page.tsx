@@ -151,6 +151,7 @@ export default function ItemsPage() {
           </div>
           <Link
             href="/admin/accounting/items/new"
+            data-demo-mutation-action
             className="inline-flex min-h-11 items-center justify-center rounded-lg bg-violet-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-800"
           >
             Add new item
@@ -226,6 +227,7 @@ export default function ItemsPage() {
                         <div className="flex items-center gap-3">
                           <button
                             type="button"
+                            data-demo-mutation-action
                             onClick={() => {
                               setActionError('');
                               setEditingItem({ ...item });
@@ -236,6 +238,7 @@ export default function ItemsPage() {
                           </button>
                           <button
                             type="button"
+                            data-demo-mutation-action
                             disabled={deletingId === item.id}
                             onClick={() => void handleItemDelete(item)}
                             className="font-medium text-red-700 hover:text-red-900 disabled:opacity-50"
