@@ -26,9 +26,13 @@ type EditableInvoice = {
 
 const tabs: { id: TabKey; label: string; filename: string }[] = [
   { id: 'invoices', label: 'Invoices', filename: 'invoices_report.csv' },
-  { id: 'parties', label: 'Parties', filename: 'parties_list.csv' },
-  { id: 'items', label: 'Items', filename: 'items_master.csv' },
-  { id: 'purchases', label: 'Purchases & Transport', filename: 'purchase_transport_report.csv' },
+  { id: 'parties', label: 'Parties', filename: 'parties_report.csv' },
+  { id: 'items', label: 'Items', filename: 'items_report.csv' },
+  {
+    id: 'purchases',
+    label: 'Purchases & Transport',
+    filename: 'purchase_reports.csv',
+  },
 ];
 
 function toRows(data: unknown): DataRow[] {
