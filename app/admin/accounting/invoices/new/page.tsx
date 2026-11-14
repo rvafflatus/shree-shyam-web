@@ -410,11 +410,12 @@ export default function NewInvoicePage() {
         </div>
         <div>
           <p className="text-sm text-gray-600">Subtotal: ₹{subtotal.toFixed(2)}</p>
-          <p className="text-sm text-gray-600">Estimated Tax (GST): ₹{totalTax.toFixed(2)}</p>
+          <p className="text-sm text-gray-600">GST on items: ₹{totalTax.toFixed(2)}</p>
           <p className="text-sm text-gray-600">CGST: ₹{gstSplit.cgst_amount.toFixed(2)}</p>
           <p className="text-sm text-gray-600">SGST: ₹{gstSplit.sgst_amount.toFixed(2)}</p>
           <p className="text-sm text-gray-600">IGST: ₹{gstSplit.igst_amount.toFixed(2)}</p>
           <p className="text-sm text-gray-600">Freight / Transport: ₹{transportCharges.toFixed(2)}</p>
+          <p className="text-xs text-gray-500">Transport is added separately and is not included in item GST.</p>
           <p className="text-xl font-bold text-gray-900">Grand Total: ₹{grandTotal.toFixed(2)}</p>
         </div>
         <div className="space-x-3">

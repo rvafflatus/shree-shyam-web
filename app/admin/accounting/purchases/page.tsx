@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
+import { getTotalTransportAmount } from '@/utils/accounting/transport';
 
 type PurchaseInvoice = {
   id: string;
@@ -11,6 +12,10 @@ type PurchaseInvoice = {
   purchase_date: string;
   transporter_name: string | null;
   gr_number: string | null;
+  freight_charge: number;
+  handling_charge: number;
+  toll_charge: number;
+  other_charge: number;
   total_transport_amount: number;
   cgst_amount: number;
   sgst_amount: number;
@@ -43,7 +48,7 @@ export default function PurchasesPage() {
         const { data, error } = await supabase
           .from('purchase_invoices')
           .select(
-            'id, supplier_name, supplier_invoice_number, purchase_date, transporter_name, gr_number, total_transport_amount, cgst_amount, sgst_amount, igst_amount, tax_amount, rcm_applicable, rcm_gst_rate, rcm_gst_amount, transport_payment_status, supplier_payable_total, total_outlay',
+            'id, supplier_name, supplier_invoice_number, purchase_date, transporter_name, gr_number, freight_charge, handling_charge, toll_charge, other_charge, total_transport_amount, cgst_amount, sgst_amount, igst_amount, tax_amount, rcm_applicable, rcm_gst_rate, rcm_gst_amount, transport_payment_status, supplier_payable_total, total_outlay',
           )
           .order('purchase_date', { ascending: false });
 
@@ -53,7 +58,12 @@ export default function PurchasesPage() {
           return;
         }
 
-        setPurchases(data ?? []);
+        setPurchases(
+          (data ?? []).map((purchase) => ({
+            ...purchase,
+            total_transport_amount: getTotalTransportAmount(purchase),
+          })),
+        );
       } catch (error) {
         if (isActive) {
           setErrorMessage(
@@ -93,7 +103,8 @@ export default function PurchasesPage() {
               Purchase Entries
             </h1>
             <p className="mt-2 text-sm text-slate-600">
-              Review supplier bills, bilty charges, RCM liability, and transport payment status.
+              Review supplier bills, purchase transport charges, RCM liability, and transport
+              payment status. Sales invoice transport is recorded separately.
             </p>
           </div>
           <Link

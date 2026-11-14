@@ -5,6 +5,7 @@ import Link from 'next/link';
 import type { FormEvent } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { getPartyState, splitGstByPartyState } from '@/utils/accounting/gst';
+import { getTotalTransportAmount } from '@/utils/accounting/transport';
 
 type DataRow = Record<string, unknown>;
 type TabKey = 'invoices' | 'parties' | 'items' | 'purchases';
@@ -198,7 +199,12 @@ export default function AccountingReportsPage() {
         setInvoices(invoiceRows);
         setParties(partyRows);
         setItems(toRows(itemResult.data));
-        setPurchases(toRows(purchaseResult.data));
+        setPurchases(
+          toRows(purchaseResult.data).map((purchase) => ({
+            ...purchase,
+            total_transport_amount: getTotalTransportAmount(purchase),
+          })),
+        );
 
         const errors = [
           invoiceError?.message,
