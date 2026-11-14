@@ -54,7 +54,11 @@ function NavIcon({ name }: { name: NavIconName }) {
   );
 }
 
-export default function AccountingSidebar() {
+export default function AccountingSidebar({
+  onSignOut,
+}: {
+  onSignOut: () => void;
+}) {
   const pathname = usePathname();
 
   return (
@@ -119,6 +123,28 @@ export default function AccountingSidebar() {
           );
         })}
       </nav>
+
+      <div className="border-t border-slate-800 px-3 py-3">
+        <button
+          type="button"
+          onClick={onSignOut}
+          className="inline-flex min-h-10 w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-300"
+        >
+          <svg
+            aria-hidden="true"
+            className="size-5 shrink-0"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M10 17l5-5-5-5 M15 12H3 M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6" />
+          </svg>
+          Log out
+        </button>
+      </div>
 
       <div className="hidden border-t border-slate-800 px-5 py-4 text-xs leading-5 text-slate-500 lg:block">
         Business records and reports

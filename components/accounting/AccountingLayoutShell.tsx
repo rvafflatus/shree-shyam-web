@@ -159,10 +159,10 @@ export default function AccountingLayoutShell({
     showRestrictedActionNotice();
   }
 
-  async function exitDemoMode() {
+  async function signOutFromAccounting() {
     const { error } = await supabase.auth.signOut();
     if (error) {
-      setAuthError(`Unable to exit Demo Mode: ${error.message}`);
+      setAuthError(`Unable to log out: ${error.message}`);
       return;
     }
     router.replace('/login');
@@ -214,7 +214,7 @@ export default function AccountingLayoutShell({
           </p>
           <button
             type="button"
-            onClick={() => void exitDemoMode()}
+            onClick={() => void signOutFromAccounting()}
             className="mt-4 rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"
           >
             Sign in with another account
@@ -233,7 +233,7 @@ export default function AccountingLayoutShell({
       onChangeCapture={blockDemoRouteChange}
       onSubmitCapture={blockDemoFormSubmit}
     >
-      <AccountingSidebar />
+      <AccountingSidebar onSignOut={() => void signOutFromAccounting()} />
       <div className="min-h-screen min-w-0 lg:ml-64">
         {isDemo && (
           <div
@@ -245,7 +245,7 @@ export default function AccountingLayoutShell({
             </p>
             <button
               type="button"
-              onClick={() => void exitDemoMode()}
+              onClick={() => void signOutFromAccounting()}
               className="self-start font-semibold underline underline-offset-2 hover:text-amber-700 sm:self-auto"
             >
               Exit demo and sign in
