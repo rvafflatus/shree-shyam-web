@@ -38,6 +38,7 @@ export default function PurchasesPage() {
   const [purchases, setPurchases] = useState<PurchaseInvoice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
@@ -83,6 +84,50 @@ export default function PurchasesPage() {
       isActive = false;
     };
   }, [reloadKey, supabase]);
+
+  async function deletePurchase(purchase: PurchaseInvoice) {
+    if (
+      !window.confirm(
+        'Delete this purchase entry and its transport details? This action cannot be undone.',
+      )
+    ) {
+      return;
+    }
+
+    setDeletingId(purchase.id);
+    setErrorMessage('');
+    try {
+      const { data, error } = await supabase
+        .from('purchase_invoices')
+        .delete()
+        .eq('id', purchase.id)
+        .select('id')
+        .single();
+
+      if (error) {
+        setErrorMessage(`Purchase entry was not deleted: ${error.message}`);
+        return;
+      }
+      if (!data) {
+        setErrorMessage(
+          'Purchase entry was not deleted because no matching record was found.',
+        );
+        return;
+      }
+
+      setPurchases((current) =>
+        current.filter((entry) => entry.id !== purchase.id),
+      );
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? `Unable to delete purchase entry: ${error.message}`
+          : 'Unable to delete purchase entry.',
+      );
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 lg:px-8">
@@ -150,7 +195,7 @@ export default function PurchasesPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1450px] border-collapse text-left text-sm">
+              <table className="w-full min-w-[1550px] border-collapse text-left text-sm">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                     <th scope="col" className="px-4 py-3 font-semibold">Date / Bill</th>
@@ -165,6 +210,7 @@ export default function PurchasesPage() {
                     <th scope="col" className="px-4 py-3 font-semibold">RCM GST</th>
                     <th scope="col" className="px-4 py-3 font-semibold">Supplier Payable</th>
                     <th scope="col" className="px-4 py-3 font-semibold">Total Outlay</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -203,6 +249,17 @@ export default function PurchasesPage() {
                       </td>
                       <td className="px-4 py-3 font-semibold text-slate-900">
                         {formatCurrency(purchase.total_outlay)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <button
+                          type="button"
+                          data-demo-mutation-action
+                          disabled={deletingId === purchase.id}
+                          onClick={() => void deletePurchase(purchase)}
+                          className="font-medium text-red-700 hover:text-red-900 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {deletingId === purchase.id ? 'Deleting...' : 'Delete'}
+                        </button>
                       </td>
                     </tr>
                   ))}
