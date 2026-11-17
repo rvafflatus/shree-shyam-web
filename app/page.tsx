@@ -111,6 +111,11 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 text-center text-sm text-gray-500 space-y-2">
           <p className="font-semibold text-gray-800">ShreeShyams.in — Powered by Shri Shyam E-Mitra & Digital Services</p>
           <p>Secure B2B Transactions, Fast Shipping Across India, and Trusted Customer Support.</p>
+          <p>
+            <Link href="/services" className="font-medium text-blue-600 transition hover:text-blue-800">
+              Quick Services &amp; Document Portals
+            </Link>
+          </p>
           <p className="text-xs text-gray-400 pt-4">© 2026 ShreeShyams.in. All rights reserved.</p>
         </div>
       </footer>
