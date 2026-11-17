@@ -116,6 +116,11 @@ export default function Home() {
               Quick Services &amp; Document Portals
             </Link>
           </p>
+          <p>
+            <Link href="/admin/accounting" className="font-medium text-blue-600 transition hover:text-blue-800">
+              Accounting Dashboard
+            </Link>
+          </p>
           <p className="text-xs text-gray-400 pt-4">© 2026 ShreeShyams.in. All rights reserved.</p>
         </div>
       </footer>
