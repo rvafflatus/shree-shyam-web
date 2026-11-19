@@ -30,6 +30,18 @@ const services = [
     icon: "🗳️",
     href: "https://voters.eci.gov.in/",
   },
+  {
+    title: "Udyam Registration",
+    description: "Register your enterprise through the official Udyam portal.",
+    icon: "🏢",
+    href: "https://udyamregistration.gov.in/",
+  },
+  {
+    title: "Airtel Retailer Portal",
+    description: "Access the Airtel Payments Bank retailer portal.",
+    icon: "📲",
+    href: "https://portal.airtelpayments.bank.in/RetailerPortal/",
+  },
 ];
 
 export default function ServicesPage() {
