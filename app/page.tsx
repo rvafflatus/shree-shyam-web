@@ -7,6 +7,7 @@ import {
   Heart,
   IdCard,
   Plane,
+  ShoppingBag,
   Sun,
 } from "lucide-react";
 
@@ -90,6 +91,16 @@ const services = [
     icon: Plane,
     gradient: "from-teal-800 via-cyan-700 to-sky-400",
   },
+  {
+    id: "shop",
+    title: "Online Shop",
+    description:
+      "Browse products, accessories, appliances, electronics, and everyday essentials from our online store.",
+    category: "E-commerce",
+    icon: ShoppingBag,
+    gradient: "from-orange-700 via-amber-600 to-yellow-400",
+    href: "/shop",
+  },
 ] as const;
 
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -123,7 +134,7 @@ export default function Home() {
           <nav className="hidden items-center gap-8 text-sm font-medium text-slate-600 md:flex">
             <a className="transition hover:text-blue-700" href="#services">Our Services</a>
             <a className="transition hover:text-blue-700" href="#about">About Us</a>
-            <Link className="transition hover:text-blue-700" href="/shop">Online Store</Link>
+            <Link className="transition hover:text-blue-700" href="/shop">Online Shop</Link>
           </nav>
           <a
             href={whatsappUrl}
@@ -198,18 +209,29 @@ export default function Home() {
                 </div>
                 <div className="mt-5 grid grid-cols-2 gap-3">
                   {services.map((service, index) => (
-                    <a
-                      key={service.id}
-                      href={`#${service.id}`}
-                      className={`flex items-center gap-3 rounded-xl border border-slate-100 p-3 transition hover:border-blue-200 hover:bg-blue-50/50 ${
-                        index === services.length - 1 ? "col-span-2" : ""
-                      }`}
-                    >
-                      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${service.gradient} text-white`}>
-                        <service.icon aria-hidden="true" className="h-5 w-5" strokeWidth={1.75} />
-                      </span>
-                      <span className="text-sm font-semibold leading-snug text-slate-700">{service.title}</span>
-                    </a>
+                    "href" in service ? (
+                      <Link
+                        key={service.id}
+                        href={service.href}
+                        className="col-span-2 flex items-center gap-3 rounded-xl border border-slate-100 p-3 transition hover:border-blue-200 hover:bg-blue-50/50"
+                      >
+                        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${service.gradient} text-white`}>
+                          <service.icon aria-hidden="true" className="h-5 w-5" strokeWidth={1.75} />
+                        </span>
+                        <span className="text-sm font-semibold leading-snug text-slate-700">{service.title}</span>
+                      </Link>
+                    ) : (
+                      <a
+                        key={service.id}
+                        href={`#${service.id}`}
+                        className="flex items-center gap-3 rounded-xl border border-slate-100 p-3 transition hover:border-blue-200 hover:bg-blue-50/50"
+                      >
+                        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${service.gradient} text-white`}>
+                          <service.icon aria-hidden="true" className="h-5 w-5" strokeWidth={1.75} />
+                        </span>
+                        <span className="text-sm font-semibold leading-snug text-slate-700">{service.title}</span>
+                      </a>
+                    )
                   ))}
                 </div>
                 <div className="mt-5 flex items-center gap-3 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
@@ -262,16 +284,27 @@ export default function Home() {
                     <p className="mt-2 min-h-14 text-sm leading-6 text-slate-600">
                       {service.description}
                     </p>
-                    <a
-                      href={`${whatsappUrl}?text=${encodeURIComponent(service.message)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-700"
-                    >
-                      <WhatsAppIcon className="h-5 w-5" />
-                      Enquire on WhatsApp
-                      <span aria-hidden="true" className="ml-auto">↗</span>
-                    </a>
+                    {"href" in service ? (
+                      <Link
+                        href={service.href}
+                        className="mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-800 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-800"
+                      >
+                        <service.icon aria-hidden="true" className="h-5 w-5" />
+                        Visit Online Shop
+                        <span aria-hidden="true" className="ml-auto">→</span>
+                      </Link>
+                    ) : (
+                      <a
+                        href={`${whatsappUrl}?text=${encodeURIComponent(service.message)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-700"
+                      >
+                        <WhatsAppIcon className="h-5 w-5" />
+                        Enquire on WhatsApp
+                        <span aria-hidden="true" className="ml-auto">↗</span>
+                      </a>
+                    )}
                   </div>
                 </article>
               ))}
@@ -328,7 +361,7 @@ export default function Home() {
                   {service.title}
                 </a>
               ))}
-              <Link href="/shop" className="text-slate-400 transition hover:text-white">Online Store</Link>
+              <Link href="/shop" className="text-slate-400 transition hover:text-white">Online Shop</Link>
               <Link href="/services" className="text-slate-400 transition hover:text-white">e-Mitra Portals</Link>
             </nav>
           </div>
