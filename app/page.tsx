@@ -5,6 +5,7 @@ import HomeServiceSlider from "@/components/HomeServiceSlider";
 import {
   Briefcase,
   Building2,
+  CircuitBoard,
   Code2,
   Heart,
   IdCard,
@@ -16,7 +17,7 @@ import {
 export const metadata: Metadata = {
   title: "Shree Shyam | Business, Digital & Lifestyle Services",
   description:
-    "Your one-stop destination for GST and business solutions, solar installations, e-Mitra services, property, web design, weddings, and travel.",
+    "Your one-stop destination for GST and business solutions, solar installations, e-Mitra services, property, web design, PCB design, weddings, and travel.",
 };
 
 const WHATSAPP_NUMBER = "919782147688";
@@ -72,6 +73,17 @@ const services = [
     category: "Technology",
     icon: Code2,
     gradient: "from-violet-800 via-purple-700 to-fuchsia-500",
+  },
+  {
+    id: "pcb-design",
+    title: "PCB Designing",
+    description:
+      "Custom PCB layout, schematic design, component selection, prototyping support, and manufacturing-ready files.",
+    message:
+      "Hello Shree Shyam, I am interested in PCB Designing services.",
+    category: "Electronics",
+    icon: CircuitBoard,
+    gradient: "from-teal-800 via-emerald-700 to-lime-500",
   },
   {
     id: "wedding",
@@ -183,7 +195,7 @@ export default function Home() {
               </span>
               <h1 className="mt-7 max-w-3xl text-4xl font-bold leading-tight tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
                 One partner for{" "}
-                <span className="text-blue-800">business, digital, solar, property</span>{" "}
+                <span className="text-blue-800">business, digital, solar, PCB, property</span>{" "}
                 &amp; lifestyle services.
               </h1>
               <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
@@ -209,7 +221,7 @@ export default function Home() {
                 </a>
               </div>
               <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-3 border-t border-slate-200 pt-6 text-sm font-medium text-slate-600">
-                <span><strong className="mr-2 text-blue-800">08</strong>service areas</span>
+                <span><strong className="mr-2 text-blue-800">09</strong>service areas</span>
                 <span><strong className="mr-2 text-blue-800">01</strong>trusted partner</span>
                 <span><strong className="mr-2 text-emerald-700">Local</strong>support you can reach</span>
               </div>

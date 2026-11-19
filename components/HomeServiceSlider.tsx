@@ -8,6 +8,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CodeXml,
+  CircuitBoard,
   IdCard,
   ShoppingBag,
   Sun,
@@ -59,6 +60,17 @@ const slides = [
     number: "04",
   },
   {
+    eyebrow: "From concept to circuit",
+    title: "Purpose-built PCB designs, ready for production.",
+    description:
+      "Get custom schematics, PCB layouts, component planning, and prototyping support for your electronics project.",
+    label: "PCB Designing",
+    href: "/#pcb-design",
+    icon: CircuitBoard,
+    accent: "from-emerald-400/30 via-teal-400/10 to-transparent",
+    number: "05",
+  },
+  {
     eyebrow: "Discover something useful",
     title: "Good finds, just a click away.",
     description:
@@ -67,7 +79,7 @@ const slides = [
     href: "/shop",
     icon: ShoppingBag,
     accent: "from-rose-400/30 via-amber-400/10 to-transparent",
-    number: "05",
+    number: "06",
   },
 ];
 
