@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Mail, Phone } from "lucide-react";
+import HomeServiceSlider from "@/components/HomeServiceSlider";
 import {
   Briefcase,
   Building2,
@@ -122,9 +124,26 @@ export default function Home() {
   return (
     <div className="home-page min-h-screen bg-white text-slate-900">
       <header className="border-b border-slate-100 bg-white">
+        <div className="bg-slate-950 text-slate-300">
+          <div className="mx-auto flex max-w-7xl flex-col gap-1.5 px-4 py-2.5 text-xs sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+            <span className="font-medium tracking-wide text-slate-400">
+              SHREE SHYAM <span className="px-1.5 text-amber-300">•</span> TONK, RAJASTHAN
+            </span>
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
+              <a className="inline-flex items-center gap-2 transition hover:text-white" href={`tel:+${WHATSAPP_NUMBER}`}>
+                <Phone aria-hidden="true" className="h-3.5 w-3.5 text-amber-300" />
+                +91 97821 47688
+              </a>
+              <a className="inline-flex items-center gap-2 transition hover:text-white" href="mailto:rv.afflatus@gmail.com">
+                <Mail aria-hidden="true" className="h-3.5 w-3.5 text-amber-300" />
+                rv.afflatus@gmail.com
+              </a>
+            </div>
+          </div>
+        </div>
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <a href="#" className="flex shrink-0 items-center gap-3" aria-label="Shree Shyam home">
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-800 text-sm font-black tracking-tight text-white shadow-sm">
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-950 text-sm font-black tracking-tight text-amber-300 shadow-sm">
               SS
             </span>
             <span className="text-xl font-bold tracking-tight text-slate-950 sm:text-2xl">
@@ -150,6 +169,7 @@ export default function Home() {
       </header>
 
       <main>
+        <HomeServiceSlider />
         <section className="relative isolate overflow-hidden bg-slate-50">
           <div aria-hidden="true" className="absolute inset-0 -z-10 overflow-hidden">
             <div className="absolute -right-36 -top-40 h-[32rem] w-[32rem] rounded-full bg-blue-100/70 blur-3xl" />
@@ -189,7 +209,7 @@ export default function Home() {
                 </a>
               </div>
               <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-3 border-t border-slate-200 pt-6 text-sm font-medium text-slate-600">
-                <span><strong className="mr-2 text-blue-800">07</strong>service areas</span>
+                <span><strong className="mr-2 text-blue-800">08</strong>service areas</span>
                 <span><strong className="mr-2 text-blue-800">01</strong>trusted partner</span>
                 <span><strong className="mr-2 text-emerald-700">Local</strong>support you can reach</span>
               </div>
@@ -208,7 +228,7 @@ export default function Home() {
                   </span>
                 </div>
                 <div className="mt-5 grid grid-cols-2 gap-3">
-                  {services.map((service, index) => (
+                  {services.map((service) => (
                     "href" in service ? (
                       <Link
                         key={service.id}
@@ -361,7 +381,6 @@ export default function Home() {
                   {service.title}
                 </a>
               ))}
-              <Link href="/shop" className="text-slate-400 transition hover:text-white">Online Shop</Link>
               <Link href="/services" className="text-slate-400 transition hover:text-white">e-Mitra Portals</Link>
             </nav>
           </div>
