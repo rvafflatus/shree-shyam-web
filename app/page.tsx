@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { Mail, Phone } from "lucide-react";
 import HomeServiceSlider from "@/components/HomeServiceSlider";
 import {
@@ -30,6 +31,7 @@ const services = [
       "Complete GST registration, return filing, accounting, tax compliance, and business consultancy.",
     message: "Hello Shree Shyam, I am interested in GST & Business Solutions.",
     category: "Business",
+    image: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=900&q=85",
     icon: Briefcase,
     gradient: "from-blue-800 via-blue-700 to-indigo-500",
   },
@@ -40,6 +42,7 @@ const services = [
       "Residential and commercial rooftop solar panel setup, subsidy assistance, and clean energy solutions.",
     message: "Hello Shree Shyam, I would like to enquire about Solar Installations.",
     category: "Clean energy",
+    image: "https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=900&q=85",
     icon: Sun,
     gradient: "from-amber-500 via-orange-500 to-rose-500",
   },
@@ -50,6 +53,7 @@ const services = [
       "Fast and reliable government citizen services, document applications, certificates, and online portal support.",
     message: "Hello Shree Shyam, I need assistance with e-Mitra Services.",
     category: "Digital services",
+    image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=900&q=85",
     icon: IdCard,
     gradient: "from-cyan-700 via-sky-600 to-blue-500",
   },
@@ -60,6 +64,7 @@ const services = [
       "Verified residential, commercial, and investment property deals with transparent documentation support.",
     message: "Hello Shree Shyam, I want to know more about Property Opportunities.",
     category: "Real estate",
+    image: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=900&q=85",
     icon: Building2,
     gradient: "from-emerald-800 via-emerald-600 to-teal-400",
   },
@@ -71,6 +76,7 @@ const services = [
     message:
       "Hello Shree Shyam, I am looking for Website & Application Designing Services.",
     category: "Technology",
+    image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=900&q=85",
     icon: Code2,
     gradient: "from-violet-800 via-purple-700 to-fuchsia-500",
   },
@@ -82,6 +88,7 @@ const services = [
     message:
       "Hello Shree Shyam, I am interested in PCB Designing services.",
     category: "Electronics",
+    image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=900&q=85",
     icon: CircuitBoard,
     gradient: "from-teal-800 via-emerald-700 to-lime-500",
   },
@@ -92,6 +99,7 @@ const services = [
       "End-to-end event management, venue coordination, decor, and seamless wedding execution.",
     message: "Hello Shree Shyam, I would like to discuss Wedding Planning services.",
     category: "Celebrations",
+    image: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=85",
     icon: Heart,
     gradient: "from-rose-700 via-pink-600 to-amber-400",
   },
@@ -102,6 +110,7 @@ const services = [
       "Customized holiday packages, family trips, pilgrimage tours, and hassle-free travel bookings across India.",
     message: "Hello Shree Shyam, I am interested in Tours & Travels packages.",
     category: "Travel",
+    image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=85",
     icon: Plane,
     gradient: "from-teal-800 via-cyan-700 to-sky-400",
   },
@@ -111,6 +120,7 @@ const services = [
     description:
       "Browse products, accessories, appliances, electronics, and everyday essentials from our online store.",
     category: "E-commerce",
+    image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=900&q=85",
     icon: ShoppingBag,
     gradient: "from-orange-700 via-amber-600 to-yellow-400",
     href: "/shop",
@@ -297,16 +307,20 @@ export default function Home() {
                   className="group scroll-mt-8 flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl hover:shadow-slate-900/10"
                 >
                   <div className={`relative flex h-44 items-center justify-center overflow-hidden bg-gradient-to-br ${service.gradient}`}>
-                    <span aria-hidden="true" className="absolute -right-7 -top-14 h-48 w-48 rounded-full border border-white/15" />
-                    <span aria-hidden="true" className="absolute -bottom-28 -left-12 h-52 w-52 rounded-full border border-white/15" />
+                    <Image
+                      src={service.image}
+                      alt=""
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                    />
+                    <span aria-hidden="true" className="absolute inset-0 bg-slate-950/35" />
+                    <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent" />
                     <span className="absolute left-5 top-5 rounded-full border border-white/30 bg-white/15 px-3 py-1 text-xs font-semibold tracking-wide text-white backdrop-blur-sm">
                       {service.category}
                     </span>
                     <span className="absolute right-5 top-5 text-sm font-semibold text-white/70">
                       {String(index + 1).padStart(2, "0")}
-                    </span>
-                    <span className="relative flex h-20 w-20 items-center justify-center rounded-2xl border border-white/30 bg-white/15 text-white shadow-lg backdrop-blur-sm transition duration-300 group-hover:scale-110">
-                      <service.icon aria-hidden="true" className="h-10 w-10" strokeWidth={1.5} />
                     </span>
                   </div>
                   <div className="flex flex-1 flex-col p-6">
