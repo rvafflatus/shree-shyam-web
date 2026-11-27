@@ -322,9 +322,6 @@ export default function Home() {
                     <span className="absolute right-5 top-5 text-sm font-semibold text-white/70">
                       {String(index + 1).padStart(2, "0")}
                     </span>
-                    <span className="relative flex h-20 w-20 items-center justify-center rounded-2xl border border-white/30 bg-white/15 text-white shadow-lg backdrop-blur-sm transition duration-300 group-hover:scale-110">
-                      <service.icon aria-hidden="true" className="h-10 w-10" strokeWidth={1.5} />
-                    </span>
                   </div>
                   <div className="flex flex-1 flex-col p-6">
                     <h3 className="min-h-14 text-xl font-bold leading-7 text-slate-950">
