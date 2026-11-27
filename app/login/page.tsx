@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
+import { isAccountingAdmin } from '@/utils/accounting/access';
 
 const demoEmail =
   process.env.NEXT_PUBLIC_DEMO_EMAIL ?? 'demo@shreeshyams.in';
@@ -29,7 +30,7 @@ export default function LoginPage() {
       if (!user) return;
 
       const accessRole = user.app_metadata.accounting_role;
-      if (accessRole === 'demo' || accessRole === 'admin') {
+      if (accessRole === 'demo' || isAccountingAdmin(user)) {
         router.replace('/admin/accounting');
         return;
       }
@@ -73,7 +74,7 @@ export default function LoginPage() {
         return;
       }
 
-      if (data.user?.app_metadata.accounting_role !== 'admin') {
+      if (!isAccountingAdmin(data.user)) {
         const { error: signOutError } = await supabase.auth.signOut();
         setErrorMessage(
           signOutError

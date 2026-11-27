@@ -12,6 +12,7 @@ import {
 import { useRouter } from 'next/navigation';
 import type { Session } from '@supabase/supabase-js';
 import { createClient } from '@/utils/supabase/client';
+import { isAccountingAdmin } from '@/utils/accounting/access';
 import AccountingSidebar from './AccountingSidebar';
 
 export default function AccountingLayoutShell({
@@ -26,8 +27,8 @@ export default function AccountingLayoutShell({
   const [authError, setAuthError] = useState('');
   const [showDemoNotice, setShowDemoNotice] = useState(false);
   const accountingShellRef = useRef<HTMLDivElement>(null);
-  const isDemo = session?.user.app_metadata.accounting_role === 'demo';
-  const isAdmin = session?.user.app_metadata.accounting_role === 'admin';
+  const isAdmin = isAccountingAdmin(session?.user);
+  const isDemo = !isAdmin && session?.user.app_metadata.accounting_role === 'demo';
 
   useEffect(() => {
     let isActive = true;
